@@ -19,7 +19,7 @@ from isaaclab.assets import ArticulationCfg
 from . import mdp
 # use Isaac Lab native event system
 
-from tasks.common_config import  H12RobotPresets, CameraPresets  # isort: skip
+from tasks.common_config import  H12RobotPresets#, CameraPresets  # isort: skip
 from tasks.common_event.event_manager import SimpleEvent, SimpleEventManager
 
 # import public scene configuration
@@ -42,9 +42,9 @@ class ObjectTableSceneCfg(TableCylinderSceneCfg):
 
 
     # 6. add camera configuration 
-    front_camera = CameraPresets.h12_front_camera()
-    left_wrist_camera = CameraPresets.left_inspire_wrist_camera()
-    right_wrist_camera = CameraPresets.right_inspire_wrist_camera()
+    #front_camera = CameraPresets.h12_front_camera()
+    #left_wrist_camera = CameraPresets.left_inspire_wrist_camera()
+    #right_wrist_camera = CameraPresets.right_inspire_wrist_camera()
 
 ##
 # MDP settings
@@ -72,7 +72,7 @@ class ObservationsCfg:
         robot_joint_state = ObsTerm(func=mdp.get_robot_boy_joint_states)
         robot_inspire_state = ObsTerm(func=mdp.get_robot_inspire_joint_states)
 
-        camera_image = ObsTerm(func=mdp.get_camera_image)
+#        camera_image = ObsTerm(func=mdp.get_camera_image)
 
         def __post_init__(self):
             """post initialization function

@@ -308,6 +308,8 @@ def main():
         except Exception as e:
             print(f"[camera] failed to apply writer options: {e}")
     except Exception as e:
+        import traceback
+        print(traceback.print_exc())
         print(f"\nFailed to create environment: {e}")
         return
     

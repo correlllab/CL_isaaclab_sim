@@ -10,7 +10,7 @@ __all__ = [
     "RobotBaseCfg",
     "G1RobotPresets",
     "H12RobotPresets",
-    "RobotJointTemplates", 
+    "RobotJointTemplates" 
     "CameraBaseCfg",
     "CameraPresets"
 ] 

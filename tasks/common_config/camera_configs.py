@@ -172,6 +172,25 @@ class CameraPresets:
             rot_offset=(0.00539,0.86024,0.0424, 0.50809),
         ) 
     
+
+    #@classmethod
+    #def left_inspire_wrist_camera(cls) -> CameraCfg:
+    #    pos_offset=(-0.04012, -0.07441 ,0.15711)
+    #    rot_offset=(0.00539,0.86024,0.0424, 0.50809)
+    #    import isaacsim.core.utils.prims as prims_utils
+    #    return CameraCfg(
+    #        prim_path="/World/envs/env_.*/Robot/left_hand_camera_base_link/left_wrist_camera",
+    #        offset=CameraCfg.OffsetCfg(
+    #            pos=pos_offset,
+    #            rot=rot_offset,
+    #            convention="ros"
+    #        ),
+    #        spawn=sim_utils.UsdFileCfg(
+    #            usd_path="/home/code/CL_isaaclab_sim/rsd455.usd",
+    #            # scale=(1.0, 1.0, 1.0),  # if needed
+    #        )
+    #    )
+
     @classmethod
     def left_inspire_wrist_camera(cls) -> CameraCfg:
         """left wrist camera configuration"""

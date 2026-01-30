@@ -338,6 +338,30 @@ def main():
         print("***  Running without GUI; rendering handled offscreen. ***")
         print("\n")
     # reset environment
+
+    try:
+        #publish realsense rgb and depth data
+        import rs_cm
+        l_depth = CameraSpecs(
+                name = "l_depth",
+                cam_path = "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/L_hand_base_link/CL_L_realsense/rsd455/RSD455/Camera_Pseudo_Depth",
+                )
+        l_rgb = CameraSpecs(
+                name = "l_rgb",
+                cam_path = "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/L_hand_base_link/CL_L_realsense/rsd455/RSD455/Camera_OmniVision_*_Color",
+                )
+        r_depth = CameraSpecs(
+                name = "r_depth",
+                cam_path = "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/R_hand_base_link/CL_R_realsense/rsd455/RSD455/Camera_Pseudo_Depth",
+                )
+        r_rgb = CameraSpecs(
+                name = "r_rgb",
+                cam_path = "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/R_hand_base_link/CL_R_realsense/rsd455/RSD455/Camera_OmniVision_*_Color",
+                )
+        _ = RealsenseCM((l_depth, l_rgb, r_depth, r_rgb))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
     if args_cli.modify_light:
         update_light(
             prim_path="/World/light",

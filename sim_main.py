@@ -79,6 +79,7 @@ parser.add_argument("--camera_exclude", type=str, default="world_camera", help="
 parser.add_argument("--env_reward_interval", type=int, default=5, help="environment reward compute interval (steps)")
 parser.add_argument("--seed", type=int, default=42, help="environment seed")
 
+
 # add AppLauncher parameters
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
@@ -91,9 +92,9 @@ if args_cli.enable_dex3_dds and args_cli.enable_dex1_dds and args_cli.enable_ins
 
 
 import pinocchio                 
+breakpoint()
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
-
 from layeredcontrol.robot_control_system import (
     RobotController, 
     ControlConfig,
@@ -339,29 +340,6 @@ def main():
         print("\n")
     # reset environment
 
-    try:
-        #publish realsense rgb and depth data
-        import rs_cm
-        l_depth = CameraSpecs(
-                name = "l_depth",
-                cam_path = "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/L_hand_base_link/CL_L_realsense/rsd455/RSD455/Camera_Pseudo_Depth",
-                )
-        l_rgb = CameraSpecs(
-                name = "l_rgb",
-                cam_path = "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/L_hand_base_link/CL_L_realsense/rsd455/RSD455/Camera_OmniVision_*_Color",
-                )
-        r_depth = CameraSpecs(
-                name = "r_depth",
-                cam_path = "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/R_hand_base_link/CL_R_realsense/rsd455/RSD455/Camera_Pseudo_Depth",
-                )
-        r_rgb = CameraSpecs(
-                name = "r_rgb",
-                cam_path = "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/R_hand_base_link/CL_R_realsense/rsd455/RSD455/Camera_OmniVision_*_Color",
-                )
-        _ = RealsenseCM((l_depth, l_rgb, r_depth, r_rgb))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
     if args_cli.modify_light:
         update_light(
             prim_path="/World/light",
@@ -384,7 +362,6 @@ def main():
     env.sim.reset()
     env.reset()
     
-    # create simplified control configuration
     try:    
         control_config = ControlConfig(
             step_hz=args_cli.step_hz,
@@ -703,3 +680,4 @@ if __name__ == "__main__":
 # python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-Cylinder-H12-27dof-Inspire-Joint  --enable_inspire_dds --robot_type h1_2
 # python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-RedBlock-H12-27dof-Inspire-Joint  --enable_inspire_dds --robot_type h1_2
 # python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-H12-27dof-Inspire-Joint --enable_inspire_dds --robot_type h1_2
+

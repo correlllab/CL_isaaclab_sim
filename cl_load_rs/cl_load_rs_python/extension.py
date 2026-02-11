@@ -15,7 +15,6 @@
 
 import asyncio
 import gc
-
 import omni
 import omni.usd
 
@@ -45,7 +44,6 @@ This class sets up standard useful callback functions in UIBuilder:
 class Extension(omni.ext.IExt):
     def on_startup(self, ext_id: str):
         """Initialize extension and UI elements"""
-
         self.ext_id = ext_id
         self._usd_context = omni.usd.get_context()
 
@@ -74,8 +72,8 @@ class Extension(omni.ext.IExt):
                 cam_path = "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/R_hand_base_link/CL_R_realsense/rsd455/RSD455/Camera_OmniVision_OV9782_Color",
                 )
         _ = RealsenseCM((l_depth, l_rgb, r_depth, r_rgb))
+        RealsenseCM.patch_context()
 
-        
     def on_shutdown(self):
         gc.collect()
 

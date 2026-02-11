@@ -1,6 +1,7 @@
 #realsense camera manager class
 #Written by Mateo Feit, Jan 29 2026
 import omni.graph.core as og
+import numpy as np
 import omni.replicator.core as rep
 from isaacsim.sensors.camera import Camera
 import omni.syntheticdata._syntheticdata as sd
@@ -37,6 +38,27 @@ class RealsenseCM:
     def __init__(self, specs: Tuple[CameraSpecs, CameraSpecs, CameraSpecs, CameraSpecs]):
         for spec in specs:
             self.init_camera(spec)
+        # Get the graph you want to add the context node to
+        try:
+            graph_path = "/Render/PostProcess/SDGPipeline"  # or your graph path
+
+            # Create the ROS2 Context node
+            keys = og.Controller.Keys
+            (graph, nodes, _, _) = og.Controller.edit(
+                graph_path,
+                    {
+                        keys.CREATE_NODES: [
+                        ("Context", "isaacsim.ros2.bridge.ROS2Context"),
+                    ],
+                    keys.SET_VALUES: [
+                        ("Context.inputs:useDomainIDEnvVar", False),
+                        ("Context.inputs:domain_id", 1)
+                    ],
+                },
+            )
+        except Exception:
+            pass
+       #RealsensCM.patch_context()
 
     def __repr__(self):
         return f"{specs}"
@@ -55,6 +77,7 @@ class RealsenseCM:
         elif "Color" in specs.cam_path.split("/")[-1]:
             RealsenseCM.publish_rgb_stream(camera)
 
+
     @staticmethod
     def get_pos_orient(prim):
         global_matrix = omni.usd.get_world_transform_matrix(prim)
@@ -68,8 +91,8 @@ class RealsenseCM:
         render_product = camera.render_product_path
         step_size = int(60/freq)
         topic_name = camera.name
-        queue_size = 1
-        node_namespace = "h12_camera"
+        queue_size = 10
+        node_namespace = "/h12_camera"
         frame_id = camera.prim_path.split("/")[-1] 
         rv = omni.syntheticdata.SyntheticData.convert_sensor_type_to_rendervar(
             sd.SensorType.DistanceToImagePlane.name
@@ -77,18 +100,18 @@ class RealsenseCM:
         rv = omni.syntheticdata.SyntheticData.convert_sensor_type_to_rendervar(sd.SensorType.Rgb.name)
         writer = rep.writers.get(rv + "ROS2PublishImage")
         writer.initialize(
-            frameId=frame_id,
-            nodeNamespace=node_namespace,
-            queueSize=queue_size,
-            topicName=topic_name,
+            frameId=str(frame_id),
+            nodeNamespace=str(node_namespace),
+            queueSize=int(queue_size),
+            topicName=str(topic_name),
         )
 
         writer.attach([render_product])
-
         gate_path = omni.syntheticdata.SyntheticData._get_node_path(
             rv + "IsaacSimulationGate", render_product
         )
         og.Controller.attribute(gate_path + ".inputs:step").set(step_size)
+
         return
     @staticmethod
     def publish_pointcloud_from_depth(camera: Camera, freq = 10):
@@ -96,8 +119,8 @@ class RealsenseCM:
         render_product = camera.render_product_path
         step_size = int(60/freq)
         topic_name = camera.name+"_pointcloud" # Set topic name to the camera's name
-        queue_size = 1
-        node_namespace = "h12_camera"
+        queue_size = 10
+        node_namespace = "/h12_camera"
         frame_id = camera.prim_path.split("/")[-1] # This matches what the TF tree is publishing.
         # Note, this pointcloud publisher will convert the Depth image to a pointcloud using the Camera intrinsics.
         # This pointcloud generation method does not support semantic labeled objects.
@@ -106,14 +129,38 @@ class RealsenseCM:
         )
         writer = rep.writers.get(rv + "ROS2PublishPointCloud")
         writer.initialize(
-            frameId=frame_id,
-            nodeNamespace=node_namespace,
-            queueSize=queue_size,
-            topicName=topic_name,
+            frameId=str(frame_id),
+            nodeNamespace=str(node_namespace),
+            queueSize=int(queue_size),
+            topicName=str(topic_name),
         )
         writer.attach([render_product])
         gate_path = omni.syntheticdata.SyntheticData._get_node_path(
             rv + "IsaacSimulationGate", render_product
         )
         og.Controller.attribute(gate_path + ".inputs:step").set(step_size)
+        
         return
+
+    @staticmethod
+    def patch_context():
+        node_names = [
+            "Replicator_01_NodeWriterWriter",
+            "Replicator_02_NodeWriterWriter",
+            "Replicator_03_NodeWriterWriter",
+            "Replicator_04_NodeWriterWriter",
+            "Replicator_05_NodeWriterWriter",
+            "Replicator_01_NodeWriterWriter_01",
+            "Replicator_02_NodeWriterWriter_01",
+            "Replicator_03_NodeWriterWriter_01",
+            "Replicator_04_NodeWriterWriter_01",
+            "Replicator_05_NodeWriterWriter_01"
+        ]
+        
+        graph_path = "/Render/PostProcess/SDGPipeline"  # or your graph path
+        for i in node_names:
+            try:
+                keys = og.Controller.Keys
+                og.Controller.edit(graph_path, { keys.CONNECT: [("Context.outputs:value", ("inputs:context", i))]})
+            except Exception:
+                continue

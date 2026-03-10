@@ -95,9 +95,11 @@ class TableCylinderSceneCfg(InteractiveSceneCfg): # inherit from the interactive
         init_state=RigidObjectCfg.InitialStateCfg(pos=[-0.35, 0.40, 0.84], # initial position (pos) 
                                                   rot=[1, 0, 0, 0]), # initial rotation (rot)
         spawn=sim_utils.CylinderCfg(
-            radius=0.018,    # cylinder radius (radius)
-            height=0.35,     # cylinder height (height)
- 
+            radius=0.001,
+            height=0.001,
+ #           radius=0.018,    # cylinder radius (radius)
+ #           height=0.35,     # cylinder height (height)
+ #
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
             ),    # rigid body properties configuration (rigid_props)
             mass_props=sim_utils.MassPropertiesCfg(mass=0.4),    # mass properties configuration (mass)

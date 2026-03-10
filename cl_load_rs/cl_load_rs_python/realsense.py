@@ -38,28 +38,6 @@ class RealsenseCM:
     def __init__(self, specs: Tuple[CameraSpecs, CameraSpecs, CameraSpecs, CameraSpecs]):
         for spec in specs:
             self.init_camera(spec)
-        # Get the graph you want to add the context node to
-        try:
-            graph_path = "/Render/PostProcess/SDGPipeline"  # or your graph path
-
-            # Create the ROS2 Context node
-            keys = og.Controller.Keys
-            (graph, nodes, _, _) = og.Controller.edit(
-                graph_path,
-                    {
-                        keys.CREATE_NODES: [
-                        ("Context", "isaacsim.ros2.bridge.ROS2Context"),
-                    ],
-                    keys.SET_VALUES: [
-                        ("Context.inputs:useDomainIDEnvVar", False),
-                        ("Context.inputs:domain_id", 1)
-                    ],
-                },
-            )
-        except Exception:
-            pass
-       #RealsensCM.patch_context()
-
     def __repr__(self):
         return f"{specs}"
 
@@ -142,25 +120,3 @@ class RealsenseCM:
         
         return
 
-    @staticmethod
-    def patch_context():
-        node_names = [
-            "Replicator_01_NodeWriterWriter",
-            "Replicator_02_NodeWriterWriter",
-            "Replicator_03_NodeWriterWriter",
-            "Replicator_04_NodeWriterWriter",
-            "Replicator_05_NodeWriterWriter",
-            "Replicator_01_NodeWriterWriter_01",
-            "Replicator_02_NodeWriterWriter_01",
-            "Replicator_03_NodeWriterWriter_01",
-            "Replicator_04_NodeWriterWriter_01",
-            "Replicator_05_NodeWriterWriter_01"
-        ]
-        
-        graph_path = "/Render/PostProcess/SDGPipeline"  # or your graph path
-        for i in node_names:
-            try:
-                keys = og.Controller.Keys
-                og.Controller.edit(graph_path, { keys.CONNECT: [("Context.outputs:value", ("inputs:context", i))]})
-            except Exception:
-                continue

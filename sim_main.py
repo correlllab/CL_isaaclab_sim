@@ -92,9 +92,10 @@ if args_cli.enable_dex3_dds and args_cli.enable_dex1_dds and args_cli.enable_ins
 
 
 import pinocchio                 
-breakpoint()
 app_launcher = AppLauncher(args_cli)
+breakpoint()
 simulation_app = app_launcher.app
+print(simulation_app)
 from layeredcontrol.robot_control_system import (
     RobotController, 
     ControlConfig,
@@ -384,6 +385,7 @@ def main():
         print("========= create dds =========")
         try:
             reset_pose_dds,sim_state_dds,dds_manager = create_dds_objects(args_cli,env)
+
         except Exception as e:
             print(f"Failed to create dds: {e}")
             return
@@ -441,6 +443,10 @@ def main():
     else:
         setup_signal_handlers(controller)
         
+
+    simulation_app.app.get_extension_manager().add_path("/home/code/exts")
+    simulation_app.app.get_extension_manager().refresh_registry()
+    simulation_app.app.get_extension_manager().set_extension_enabled_immediate("cl_load_rs-1.0.1", True)
     print("Note: The DDS in Sim transmits messages on channel 1. Please ensure that other DDS instances use the same channel for message exchange by setting: ChannelFactoryInitialize(1).")
     try:
         # start controller - start asynchronous components

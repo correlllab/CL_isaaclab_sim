@@ -93,7 +93,6 @@ if args_cli.enable_dex3_dds and args_cli.enable_dex1_dds and args_cli.enable_ins
 
 import pinocchio                 
 app_launcher = AppLauncher(args_cli)
-breakpoint()
 simulation_app = app_launcher.app
 print(simulation_app)
 from layeredcontrol.robot_control_system import (

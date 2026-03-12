@@ -26,7 +26,8 @@ class TableCylinderSceneCfg(InteractiveSceneCfg): # inherit from the interactive
             rot=[1.0, 0.0, 0.0, 0.0]
         ),
         spawn=UsdFileCfg(
-            usd_path=f"{ISAAC_NUCLEUS_DIR}/Environments/Simple_Warehouse/warehouse.usd",  # use simple room model
+            #usd_path=f"{ISAAC_NUCLEUS_DIR}/Environments/Simple_Warehouse/warehouse.usd",  # use simple room model
+            usd_path=f"{ISAAC_NUCLEUS_DIR}/Environments/Grid/gridroom_black.usd",  # use simple room model
         ),
     )
     # print(f"ISAAC_NUCLEUS_DIR: {ISAAC_NUCLEUS_DIR}")
@@ -43,51 +44,51 @@ class TableCylinderSceneCfg(InteractiveSceneCfg): # inherit from the interactive
         ),
     )
 
-    packing_table_2 = AssetBaseCfg(
-        prim_path="/World/envs/env_.*/PackingTable_2",   
-        init_state=AssetBaseCfg.InitialStateCfg(pos=[-3.5, 0.55, -0.2],  
-                                                rot=[1.0, 0.0, 0.0, 0.0]), 
-        spawn=UsdFileCfg(
-            usd_path=f"{project_root}/assets/objects/PackingTable/PackingTable.usd",    # table model file
-            rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
-        ),
-    )
-    packing_table_3 = AssetBaseCfg(
-        prim_path="/World/envs/env_.*/PackingTable_3",   
-        init_state=AssetBaseCfg.InitialStateCfg(pos=[3.5, 0.55, -0.2],  
-                                                rot=[1.0, 0.0, 0.0, 0.0]), 
-        spawn=UsdFileCfg(
-            usd_path=f"{project_root}/assets/objects/PackingTable/PackingTable.usd",    # table model file
-            rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
-        ),
-    )
-    packing_table_4 = AssetBaseCfg(
-        prim_path="/World/envs/env_.*/PackingTable_4",   
-        init_state=AssetBaseCfg.InitialStateCfg(pos=[3.5, -5, -0.2],  
-                                                rot=[1.0, 0.0, 0.0, 0.0]), 
-        spawn=UsdFileCfg(
-            usd_path=f"{project_root}/assets/objects/PackingTable/PackingTable.usd",    # table model file
-            rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
-        ),
-    )
-    packing_table_5 = AssetBaseCfg(
-        prim_path="/World/envs/env_.*/PackingTable_5",   
-        init_state=AssetBaseCfg.InitialStateCfg(pos=[-3.5, -5, -0.2],  
-                                                rot=[1.0, 0.0, 0.0, 0.0]), 
-        spawn=UsdFileCfg(
-            usd_path=f"{project_root}/assets/objects/PackingTable/PackingTable.usd",    # table model file
-            rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
-        ),
-    )
-    packing_table_6 = AssetBaseCfg(
-        prim_path="/World/envs/env_.*/PackingTable_6",   
-        init_state=AssetBaseCfg.InitialStateCfg(pos=[0.0, -5, -0.2],  
-                                                rot=[1.0, 0.0, 0.0, 0.0]), 
-        spawn=UsdFileCfg(
-            usd_path=f"{project_root}/assets/objects/PackingTable/PackingTable.usd",    # table model file
-            rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
-        ),
-    )
+    #packing_table_2 = AssetBaseCfg(
+    #    prim_path="/World/envs/env_.*/PackingTable_2",   
+    #    init_state=AssetBaseCfg.InitialStateCfg(pos=[-3.5, 0.55, -0.2],  
+    #                                            rot=[1.0, 0.0, 0.0, 0.0]), 
+    #    spawn=UsdFileCfg(
+    #        usd_path=f"{project_root}/assets/objects/PackingTable/PackingTable.usd",    # table model file
+    #        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
+    #    ),
+    #)
+    #packing_table_3 = AssetBaseCfg(
+    #    prim_path="/World/envs/env_.*/PackingTable_3",   
+    #    init_state=AssetBaseCfg.InitialStateCfg(pos=[3.5, 0.55, -0.2],  
+    #                                            rot=[1.0, 0.0, 0.0, 0.0]), 
+    #    spawn=UsdFileCfg(
+    #        usd_path=f"{project_root}/assets/objects/PackingTable/PackingTable.usd",    # table model file
+    #        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
+    #    ),
+    #)
+    #packing_table_4 = AssetBaseCfg(
+    #    prim_path="/World/envs/env_.*/PackingTable_4",   
+    #    init_state=AssetBaseCfg.InitialStateCfg(pos=[3.5, -5, -0.2],  
+    #                                            rot=[1.0, 0.0, 0.0, 0.0]), 
+    #    spawn=UsdFileCfg(
+    #        usd_path=f"{project_root}/assets/objects/PackingTable/PackingTable.usd",    # table model file
+    #        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
+    #    ),
+    #)
+    #packing_table_5 = AssetBaseCfg(
+    #    prim_path="/World/envs/env_.*/PackingTable_5",   
+    #    init_state=AssetBaseCfg.InitialStateCfg(pos=[-3.5, -5, -0.2],  
+    #                                            rot=[1.0, 0.0, 0.0, 0.0]), 
+    #    spawn=UsdFileCfg(
+    #        usd_path=f"{project_root}/assets/objects/PackingTable/PackingTable.usd",    # table model file
+    #        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
+    #    ),
+    #)
+    #packing_table_6 = AssetBaseCfg(
+    #    prim_path="/World/envs/env_.*/PackingTable_6",   
+    #    init_state=AssetBaseCfg.InitialStateCfg(pos=[0.0, -5, -0.2],  
+    #                                            rot=[1.0, 0.0, 0.0, 0.0]), 
+    #    spawn=UsdFileCfg(
+    #        usd_path=f"{project_root}/assets/objects/PackingTable/PackingTable.usd",    # table model file
+    #        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
+    #    ),
+    #)
     # Object
     # 2. object configuration (cylinder)     
     object = RigidObjectCfg(

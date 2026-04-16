@@ -20,7 +20,6 @@ from pathlib import Path
 # Isaac Lab AppLauncher
 from isaaclab.app import AppLauncher
 
-from teleimager.image_server import run_isaacsim_server
 from dds.dds_create import create_dds_objects,create_dds_objects_replay
 # add command line arguments
 parser = argparse.ArgumentParser(description="Unitree Simulation")
@@ -43,7 +42,7 @@ parser.add_argument("--rerun_log", action="store_true", default=False, help="rer
 parser.add_argument("--replay_data",  action="store_true", default=False, help="replay data")
 
 parser.add_argument("--modify_light",  action="store_true", default=False, help="modify light")
-parser.add_argument("--modify_camera",  action="store_true", default=False,    help="modify camera")
+#parser.add_argument("--modify_camera",  action="store_true", default=False,    help="modify camera")
 
 # performance analysis parameters
 parser.add_argument("--step_hz", type=int, default=100, help="control frequency")
@@ -56,7 +55,7 @@ parser.add_argument("--enable_wholebody_dds", action="store_true", default=False
 
 parser.add_argument("--physics_dt", type=float, default=None, help="physics time step, e.g., 0.005")
 parser.add_argument("--render_interval", type=int, default=None, help="render interval steps (>=1)")
-parser.add_argument("--camera_write_interval", type=int, default=None, help="camera write interval steps (>=1)")
+#parser.add_argument("--camera_write_interval", type=int, default=None, help="camera write interval steps (>=1)")
 
 
 parser.add_argument(
@@ -69,12 +68,12 @@ parser.add_argument("--solver_iterations", type=int, default=None, help="physx s
 parser.add_argument("--gravity_z", type=float, default=None, help="override gravity z (e.g., -9.8)")
 parser.add_argument("--skip_cvtcolor", action="store_true", default=False, help="skip cv2.cvtColor if upstream already BGR")
 
-parser.add_argument("--camera_jpeg", action="store_true", default=True, help="enable JPEG compression for camera frames")
-parser.add_argument("--camera_jpeg_quality", type=int, default=85, help="JPEG quality (1-100)")
+#parser.add_argument("--camera_jpeg", action="store_true", default=True, help="enable JPEG compression for camera frames")
+#parser.add_argument("--camera_jpeg_quality", type=int, default=85, help="JPEG quality (1-100)")
 
 parser.add_argument("--physx_substeps", type=int, default=None, help="physx substeps per step")
-parser.add_argument("--camera_include", type=str, default="front_camera,left_wrist_camera,right_wrist_camera", help="comma-separated camera names to enable")
-parser.add_argument("--camera_exclude", type=str, default="world_camera", help="comma-separated camera names to disable")
+#parser.add_argument("--camera_include", type=str, default="front_camera,left_wrist_camera,right_wrist_camera", help="comma-separated camera names to enable")
+#parser.add_argument("--camera_exclude", type=str, default="world_camera", help="comma-separated camera names to disable")
 
 parser.add_argument("--env_reward_interval", type=int, default=5, help="environment reward compute interval (steps)")
 parser.add_argument("--seed", type=int, default=42, help="environment seed")
@@ -106,7 +105,7 @@ from isaaclab_tasks.utils.parse_cfg import parse_env_cfg
 
 from tools.augmentation_utils import (
     update_light,
-    batch_augment_cameras_by_name,
+    #batch_augment_cameras_by_name,
 )
 
 from tools.data_json_load import sim_state_to_json
@@ -115,7 +114,9 @@ from action_provider.create_action_provider import create_action_provider
 from tools.get_stiffness import get_robot_stiffness_from_env
 from tools.get_reward import get_step_reward_value,get_current_rewards
 
-def setup_signal_handlers(controller,dds_manager=None,image_server=None):
+from isaacsim.core.utils.viewports import destroy_all_viewports
+
+def setup_signal_handlers(controller,dds_manager=None):
     """set signal handlers"""
     def signal_handler(signum, frame):
         print(f"\nreceived signal {signum}, stopping controller...")
@@ -128,11 +129,6 @@ def setup_signal_handlers(controller,dds_manager=None,image_server=None):
                 dds_manager.stop_all_communication()
         except Exception as e:
             print(f"Failed to stop DDS: {e}")
-        try:
-            if image_server is not None:
-                image_server.stop()
-        except Exception as e:
-            print(f"Failed to stop image server: {e}")
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
@@ -232,13 +228,13 @@ def main():
                 print(f"[sim] render_interval set to {env.sim.render_interval}")
         except Exception as e:
             print(f"[sim] failed to configure rendering: {e}")
-        if args_cli.camera_write_interval is not None:
-            try:
-                import tasks.common_observations.camera_state as cam_state
-                cam_state._camera_cache['write_interval_steps'] = max(1, int(args_cli.camera_write_interval))
-                print(f"[camera] write interval steps set to {cam_state._camera_cache['write_interval_steps']}")
-            except Exception as e:
-                print(f"[camera] failed to set write interval: {e}")
+        #if args_cli.camera_write_interval is not None:
+        #    try:
+        #        import tasks.common_observations.camera_state as cam_state
+        #        cam_state._camera_cache['write_interval_steps'] = max(1, int(args_cli.camera_write_interval))
+        #        print(f"[camera] write interval steps set to {cam_state._camera_cache['write_interval_steps']}")
+        #    except Exception as e:
+        #        print(f"[camera] failed to set write interval: {e}")
 
         try:
             if args_cli.solver_iterations is not None:
@@ -259,55 +255,55 @@ def main():
                 print(f"[sim] gravity set to {env.sim.physx.gravity}")
         except Exception as e:
             print(f"[sim] failed to set physx params: {e}")
-        if args_cli.skip_cvtcolor:
-            os.environ["CAMERA_SKIP_CVTCOLOR"] = "1"
-        try:
-            import tasks.common_observations.camera_state as cam_state
-            enable_jpeg = bool(args_cli.camera_jpeg) or (os.getenv("CAMERA_JPEG") == "1")
-            jpeg_quality = int(args_cli.camera_jpeg_quality if args_cli.camera_jpeg else os.getenv("CAMERA_JPEG_QUALITY", args_cli.camera_jpeg_quality))
-            cam_state.set_writer_options(enable_jpeg=enable_jpeg, jpeg_quality=jpeg_quality, skip_cvtcolor=args_cli.skip_cvtcolor)
-            include = [n.strip() for n in (args_cli.camera_include or "").split(',') if n.strip()]
-            exclude = [n.strip() for n in (args_cli.camera_exclude or "").split(',') if n.strip()]
-            try:
-                cam_state.set_camera_allowlist(include)
-            except Exception:
-                pass
-            try:
-                sensors_dict = getattr(env.scene, "sensors", {})
-                for name, sensor in sensors_dict.items():
-                    lname = name.lower()
-                    if "camera" not in lname:
-                        continue
-                    if exclude and name in exclude:
-                        for attr_name, value in [("enabled", False), ("is_enabled", False)]:
-                            if hasattr(sensor, attr_name):
-                                try:
-                                    setattr(sensor, attr_name, value)
-                                except Exception:
-                                    pass
-                        for meth in ("set_active", "disable", "pause"):
-                            if hasattr(sensor, meth):
-                                try:
-                                    getattr(sensor, meth)(False)
-                                except Exception:
-                                    pass
-                        for attr_name in ("update_period", "_update_period"):
-                            if hasattr(sensor, attr_name):
-                                try:
-                                    setattr(sensor, attr_name, 1e6)
-                                except Exception:
-                                    pass
-                    elif include and name not in include:
-                        for attr_name in ("update_period", "_update_period"):
-                            if hasattr(sensor, attr_name):
-                                try:
-                                    setattr(sensor, attr_name, 1e6)
-                                except Exception:
-                                    pass
-            except Exception as e:
-                print(f"[camera] failed to tune sensors: {e}")
-        except Exception as e:
-            print(f"[camera] failed to apply writer options: {e}")
+        #if args_cli.skip_cvtcolor:
+        #    os.environ["CAMERA_SKIP_CVTCOLOR"] = "1"
+        #try:
+        #    import tasks.common_observations.camera_state as cam_state
+        #    enable_jpeg = bool(args_cli.camera_jpeg) or (os.getenv("CAMERA_JPEG") == "1")
+        #    jpeg_quality = int(args_cli.camera_jpeg_quality if args_cli.camera_jpeg else os.getenv("CAMERA_JPEG_QUALITY", args_cli.camera_jpeg_quality))
+        #    cam_state.set_writer_options(enable_jpeg=enable_jpeg, jpeg_quality=jpeg_quality, skip_cvtcolor=args_cli.skip_cvtcolor)
+        #    include = [n.strip() for n in (args_cli.camera_include or "").split(',') if n.strip()]
+        #    exclude = [n.strip() for n in (args_cli.camera_exclude or "").split(',') if n.strip()]
+        #    try:
+        #        cam_state.set_camera_allowlist(include)
+        #    except Exception:
+        #        pass
+        #    try:
+        #        sensors_dict = getattr(env.scene, "sensors", {})
+        #        for name, sensor in sensors_dict.items():
+        #            lname = name.lower()
+        #            if "camera" not in lname:
+        #                continue
+        #            if exclude and name in exclude:
+        #                for attr_name, value in [("enabled", False), ("is_enabled", False)]:
+        #                    if hasattr(sensor, attr_name):
+        #                        try:
+        #                            setattr(sensor, attr_name, value)
+        #                        except Exception:
+        #                            pass
+        #                for meth in ("set_active", "disable", "pause"):
+        #                    if hasattr(sensor, meth):
+        #                        try:
+        #                            getattr(sensor, meth)(False)
+        #                        except Exception:
+        #                            pass
+        #                for attr_name in ("update_period", "_update_period"):
+        #                    if hasattr(sensor, attr_name):
+        #                        try:
+        #                            setattr(sensor, attr_name, 1e6)
+        #                        except Exception:
+        #                            pass
+        #            elif include and name not in include:
+        #                for attr_name in ("update_period", "_update_period"):
+        #                    if hasattr(sensor, attr_name):
+        #                        try:
+        #                            setattr(sensor, attr_name, 1e6)
+        #                        except Exception:
+        #                            pass
+        #    except Exception as e:
+        #        print(f"[camera] failed to tune sensors: {e}")
+        #except Exception as e:
+        #    print(f"[camera] failed to apply writer options: {e}")
     except Exception as e:
         import traceback
         print(traceback.print_exc())
@@ -350,18 +346,19 @@ def main():
             enabled=True,
             cast_shadows=True
         )
-    if args_cli.modify_camera:
-        batch_augment_cameras_by_name(
-            names=["front_cam"],
-            focal_length=3.0,
-            horizontal_aperture=22.0,
-            vertical_aperture=16.0,
-            exposure=0.8,                
-            focus_distance=1.2
-        )
+    #if args_cli.modify_camera:
+    #    batch_augment_cameras_by_name(
+    #        names=["front_cam"],
+    #        focal_length=3.0,
+    #        horizontal_aperture=22.0,
+    #        vertical_aperture=16.0,
+    #        exposure=0.8,                
+    #        focus_distance=1.2
+    #    )
     env.sim.reset()
     env.reset()
     
+    destroy_all_viewports(None, False)
     try:    
         control_config = ControlConfig(
             step_hz=args_cli.step_hz,
@@ -374,13 +371,6 @@ def main():
     # create controller
 
     if not args_cli.replay_data:
-        print("========= create image server =========")
-        try:
-            image_server = run_isaacsim_server()
-        except Exception as e:
-            print(f"Failed to create image server: {e}")
-            return
-        print("========= create image server success =========")
         print("========= create dds =========")
         try:
             reset_pose_dds,sim_state_dds,dds_manager = create_dds_objects(args_cli,env)
@@ -438,7 +428,7 @@ def main():
 
     # set signal handlers
     if not args_cli.replay_data:
-        setup_signal_handlers(controller,dds_manager,image_server)
+        setup_signal_handlers(controller,dds_manager)
     else:
         setup_signal_handlers(controller)
         
@@ -446,6 +436,7 @@ def main():
     simulation_app.app.get_extension_manager().add_path("/home/code/exts")
     simulation_app.app.get_extension_manager().refresh_registry()
     simulation_app.app.get_extension_manager().set_extension_enabled_immediate("cl_load_rs-1.0.1", True)
+    simulation_app.app.get_extension_manager().set_extension_enabled_immediate("cl_reset_button-1.0.1", True)
     print("Note: The DDS in Sim transmits messages on channel 1. Please ensure that other DDS instances use the same channel for message exchange by setting: ChannelFactoryInitialize(1).")
     try:
         # start controller - start asynchronous components
@@ -472,6 +463,8 @@ def main():
                     try:
                         env_state = env.scene.get_state()
                         env_state_json =  sim_state_to_json(env_state)
+                        with open("/home/code/.resetsimstate", "w") as f:
+                            f.write(env_state_json)
                         sim_state = {"init_state":env_state_json,"task_name":args_cli.task}
                     except Exception as e:
                         print(f"Failed to get env state: {e}")
@@ -560,19 +553,19 @@ def main():
                         moving_avg_frequency = 0
                         min_freq = max_freq = 0
                     
-                    print(f"\n=== While loop execution frequency statistics ===")
-                    print(f"loop execution count: {loop_count}")
-                    print(f"running time: {elapsed_time:.2f} seconds")
-                    print(f"overall average frequency: {loop_frequency:.2f} Hz")
-                    print(f"moving average frequency: {moving_avg_frequency:.2f} Hz (last {len(recent_loop_times)} times)")
-                    print(f"frequency range: {min_freq:.2f} - {max_freq:.2f} Hz")
-                    print(f"average loop time: {(elapsed_time/loop_count*1000):.2f} ms")
-                    if recent_loop_times:
-                        print(f"recent loop time: {(avg_loop_time*1000):.2f} ms")
-                    print(f"=============================")
-                    
-                    # print_stats(controller)
-                    last_stats_time = current_time
+                    #print(f"\n=== While loop execution frequency statistics ===")
+                    #print(f"loop execution count: {loop_count}")
+                    #print(f"running time: {elapsed_time:.2f} seconds")
+                    #print(f"overall average frequency: {loop_frequency:.2f} Hz")
+                    #print(f"moving average frequency: {moving_avg_frequency:.2f} Hz (last {len(recent_loop_times)} times)")
+                    #print(f"frequency range: {min_freq:.2f} - {max_freq:.2f} Hz")
+                    #print(f"average loop time: {(elapsed_time/loop_count*1000):.2f} ms")
+                    #if recent_loop_times:
+                    #    print(f"recent loop time: {(avg_loop_time*1000):.2f} ms")
+                    #print(f"=============================")
+                    #
+                    ## print_stats(controller)
+                    #last_stats_time = current_time
        
                 # check environment state
                 if env.sim.is_stopped():
@@ -589,7 +582,6 @@ def main():
         # clean up resources
         print("\nclean up resources...")
         controller.cleanup()
-        image_server.stop()
         env.close()
         print("cleanup completed")
     # profiler.disable()
@@ -653,6 +645,8 @@ if __name__ == "__main__":
         
         try:
             simulation_app.close()
+            with open("/home/code/.resetsimstate", "w") as f:
+                f.write()
         except Exception as e:
             print(f"Failed to close simulation application: {e}")
             
@@ -660,29 +654,4 @@ if __name__ == "__main__":
         
         # Force exit
         os._exit(0)
-
-# python sim_main.py --device cpu  --enable_cameras  --task  Isaac-PickPlace-Cylinder-G129-Dex1-Joint   --enable_dex1_dds --robot_type g129
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-Cylinder-G129-Dex3-Joint    --enable_dex3_dds --robot_type g129
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-Cylinder-G129-Inspire-Joint    --enable_inspire_dds --robot_type g129
-
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-RedBlock-G129-Dex1-Joint     --enable_dex1_dds --robot_type g129
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-RedBlock-G129-Dex3-Joint    --enable_dex3_dds --robot_type g129
-# python sim_main.py --device cpu  --enable_cameras  --task  Isaac-PickPlace-RedBlock-G129-Inspire-Joint    --enable_inspire_dds --robot_type g129
-
-
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-G129-Dex1-Joint     --enable_dex1_dds --robot_type g129
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-G129-Dex3-Joint     --enable_dex3_dds --robot_type g129
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-G129-Inspire-Joint     --enable_inspire_dds --robot_type g129
-
-
-
-
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Move-Cylinder-G129-Dex1-Wholebody  --robot_type g129 --enable_dex1_dds 
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Move-Cylinder-G129-Dex3-Wholebody  --robot_type g129 --enable_dex3_dds 
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Move-Cylinder-G129-Inspire-Wholebody  --robot_type g129 --enable_inspire_dds 
-
-
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-Cylinder-H12-27dof-Inspire-Joint  --enable_inspire_dds --robot_type h1_2
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-RedBlock-H12-27dof-Inspire-Joint  --enable_inspire_dds --robot_type h1_2
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-H12-27dof-Inspire-Joint --enable_inspire_dds --robot_type h1_2
 

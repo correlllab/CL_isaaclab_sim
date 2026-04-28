@@ -5,13 +5,13 @@
 
 from .robot_configs import RobotBaseCfg, H12RobotPresets, RobotJointTemplates
 #from .robot_configs import RobotBaseCfg, H12RobotPresets, RobotJointTemplates,G1RobotPresets
-from .camera_configs import CameraBaseCfg, CameraPresets
+#from .camera_configs import CameraBaseCfg, CameraPresets
 
 __all__ = [
     "RobotBaseCfg",
     #"G1RobotPresets",
     "H12RobotPresets",
     "RobotJointTemplates" 
-    "CameraBaseCfg",
-    "CameraPresets"
+    #"CameraBaseCfg",
+    #"CameraPresets"
 ] 

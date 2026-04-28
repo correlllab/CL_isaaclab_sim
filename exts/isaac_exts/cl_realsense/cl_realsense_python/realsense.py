@@ -41,7 +41,7 @@ class Realsense:
     @log_func
     def initialize(self):
         stage = omni.usd.get_context().get_stage()
-        position, orientation, _ = get_prim_translations(stage.GetPrimAtPath(self.path))
+        position, orientation, _ = get_prim_transformations(stage.GetPrimAtPath(self.path))
 
         rp = rep.create.render_product(self.path, (self.res_width, self.res_height))
         self.rp_path = rp.path
@@ -71,10 +71,12 @@ class Realsense:
 
         if self.role == CamType.DEPTH:
             fetch = "ROS2PublishPointCloud"
-            topic = "/aligned_depth_to_color/image_raw/compressedDepth"
+            topic = "/aligned_depth_to_color/image_raw/test_pc"
+            #topic = "/aligned_depth_to_color/image_raw/compressedDepth"
         elif self.role == CamType.RGB:
             fetch = "ROS2PublishImage"
-            topic = "/color/image_raw/compressed"
+            topic = "color/image_raw/test_img"
+            #topic = "/color/image_raw/compressed"
 
         writer = rep.writers.get(rv + fetch)
         writer.initialize(

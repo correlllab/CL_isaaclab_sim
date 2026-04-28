@@ -136,11 +136,6 @@ def setup_signal_handlers(controller,dds_manager=None):
 
 def main():
     """main function"""
-    # import cProfile
-    # import pstats
-    # import io
-    # profiler = cProfile.Profile()
-    # profiler.enable()
     import os
     import atexit
     try:
@@ -228,13 +223,6 @@ def main():
                 print(f"[sim] render_interval set to {env.sim.render_interval}")
         except Exception as e:
             print(f"[sim] failed to configure rendering: {e}")
-        #if args_cli.camera_write_interval is not None:
-        #    try:
-        #        import tasks.common_observations.camera_state as cam_state
-        #        cam_state._camera_cache['write_interval_steps'] = max(1, int(args_cli.camera_write_interval))
-        #        print(f"[camera] write interval steps set to {cam_state._camera_cache['write_interval_steps']}")
-        #    except Exception as e:
-        #        print(f"[camera] failed to set write interval: {e}")
 
         try:
             if args_cli.solver_iterations is not None:
@@ -255,55 +243,6 @@ def main():
                 print(f"[sim] gravity set to {env.sim.physx.gravity}")
         except Exception as e:
             print(f"[sim] failed to set physx params: {e}")
-        #if args_cli.skip_cvtcolor:
-        #    os.environ["CAMERA_SKIP_CVTCOLOR"] = "1"
-        #try:
-        #    import tasks.common_observations.camera_state as cam_state
-        #    enable_jpeg = bool(args_cli.camera_jpeg) or (os.getenv("CAMERA_JPEG") == "1")
-        #    jpeg_quality = int(args_cli.camera_jpeg_quality if args_cli.camera_jpeg else os.getenv("CAMERA_JPEG_QUALITY", args_cli.camera_jpeg_quality))
-        #    cam_state.set_writer_options(enable_jpeg=enable_jpeg, jpeg_quality=jpeg_quality, skip_cvtcolor=args_cli.skip_cvtcolor)
-        #    include = [n.strip() for n in (args_cli.camera_include or "").split(',') if n.strip()]
-        #    exclude = [n.strip() for n in (args_cli.camera_exclude or "").split(',') if n.strip()]
-        #    try:
-        #        cam_state.set_camera_allowlist(include)
-        #    except Exception:
-        #        pass
-        #    try:
-        #        sensors_dict = getattr(env.scene, "sensors", {})
-        #        for name, sensor in sensors_dict.items():
-        #            lname = name.lower()
-        #            if "camera" not in lname:
-        #                continue
-        #            if exclude and name in exclude:
-        #                for attr_name, value in [("enabled", False), ("is_enabled", False)]:
-        #                    if hasattr(sensor, attr_name):
-        #                        try:
-        #                            setattr(sensor, attr_name, value)
-        #                        except Exception:
-        #                            pass
-        #                for meth in ("set_active", "disable", "pause"):
-        #                    if hasattr(sensor, meth):
-        #                        try:
-        #                            getattr(sensor, meth)(False)
-        #                        except Exception:
-        #                            pass
-        #                for attr_name in ("update_period", "_update_period"):
-        #                    if hasattr(sensor, attr_name):
-        #                        try:
-        #                            setattr(sensor, attr_name, 1e6)
-        #                        except Exception:
-        #                            pass
-        #            elif include and name not in include:
-        #                for attr_name in ("update_period", "_update_period"):
-        #                    if hasattr(sensor, attr_name):
-        #                        try:
-        #                            setattr(sensor, attr_name, 1e6)
-        #                        except Exception:
-        #                            pass
-        #    except Exception as e:
-        #        print(f"[camera] failed to tune sensors: {e}")
-        #except Exception as e:
-        #    print(f"[camera] failed to apply writer options: {e}")
     except Exception as e:
         import traceback
         print(traceback.print_exc())

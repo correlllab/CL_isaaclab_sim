@@ -49,3 +49,9 @@ def euler_to_quat(euler: list):
     rot = Rotation.from_euler('xyz', euler, degrees=True)
     rot_quat = rot.as_quat()
     return rot_quat
+
+@log_func
+def quat_to_euler(quat: list):
+    rot = Rotation.from_quat(quat)
+    rot_euler = rot.as_euler('xyz', degrees=True)
+    return rot_euler

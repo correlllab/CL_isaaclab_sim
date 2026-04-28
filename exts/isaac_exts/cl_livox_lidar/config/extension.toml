@@ -1,7 +1,7 @@
 [package]
 version = "1.0.1"
 category = "Simulation"
-title = "cl_livox"
+title = "cl_livox_lidar"
 description = "Loading livox for h12 in isaac lab"
 authors = ["mateo"]
 repository = ""
@@ -20,4 +20,4 @@ writeTarget.kit = true
 "isaacsim.replicator.writers" = {}
 
 [[python.module]]
-name = "cl_livox_python"
+name = "cl_livox_lidar_python"

@@ -20,7 +20,7 @@ version = "1.0.2" # Semantic Versioning is used: https://semver.org/
 "omni.graph.tools" = {}
 
 [[python.module]]
-name = "cl_compress_jpeg_omni_node"
+name = "cl_compress_jpeg_node"
 
 [[native.plugin]]
 path = "bin/*.plugin"

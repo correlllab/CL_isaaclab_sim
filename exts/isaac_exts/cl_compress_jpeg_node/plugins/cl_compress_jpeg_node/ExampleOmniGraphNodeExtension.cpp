@@ -17,7 +17,7 @@
 #include <omni/graph/core/ogn/Registration.h>
 
 // Standard plugin definitions required by Carbonite.
-const struct carb::PluginImplDesc pluginImplDesc = { "cl_compress_jpeg_omni_node", "An example C++ extension.", "NVIDIA", carb::PluginHotReload::eEnabled, "dev" };
+const struct carb::PluginImplDesc pluginImplDesc = { "cl_compress_jpeg_node", "An example C++ extension.", "NVIDIA", carb::PluginHotReload::eEnabled, "dev" };
 
 // These interface dependencies are required by all OmniGraph node types
 CARB_PLUGIN_IMPL_DEPS(omni::graph::core::IGraphRegistry,
@@ -27,7 +27,7 @@ CARB_PLUGIN_IMPL_DEPS(omni::graph::core::IGraphRegistry,
 // This macro sets up the information required to register your node type definitions with OmniGraph
 DECLARE_OGN_NODES()
 
-namespace cl_compress_jpeg_omni_node
+namespace cl_compress_jpeg_node
 {
 //namespace example
 //{
@@ -42,6 +42,7 @@ public:
     void onStartup(const char* extId) override
     {
         printf("ExampleOmniGraphNodeExtension starting up (ext_id: %s).\n", extId);
+        printf("HIIIII");
         // This macro walks the list of pending node type definitions and registers them with OmniGraph
         INITIALIZE_OGN_NODES()
     }
@@ -62,10 +63,10 @@ private:
 //}
 }
 
-CARB_PLUGIN_IMPL(pluginImplDesc, cl_compress_jpeg_omni_node::ExampleOmniGraphNodeExtension)
+CARB_PLUGIN_IMPL(pluginImplDesc, cl_compress_jpeg_node::ExampleOmniGraphNodeExtension)
 //CARB_PLUGIN_IMPL(pluginImplDesc, omni::example::cpp::omnigraph_node::ExampleOmniGraphNodeExtension)
 
-void fillInterface(cl_compress_jpeg_omni_node::ExampleOmniGraphNodeExtension& iface)
+void fillInterface(cl_compress_jpeg_node::ExampleOmniGraphNodeExtension& iface)
 //void fillInterface(omni::example::cpp::omnigraph_node::ExampleOmniGraphNodeExtension& iface)
 {
 }

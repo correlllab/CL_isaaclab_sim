@@ -16,11 +16,14 @@ namespace cl_compress_jpeg_node {
   class CLCompressJpegNode {
     public:
       static bool compute(CLCompressJpegNodeDatabase& db) {
+        std::string path = "/home/mateo/correll/kit-extension-template-cpp/PACKAGE-INFO.yaml";
+        std::printf("running compute");
+        readData(path);
         return true;
       }
       static bool readData(std::string filePath) {
       
-        std::ifstream f("/home/mateo/bag_files/rosbag2_2026_04_28-19_54_07_0.db3");
+        std::ifstream f(filePath);
         if (!f.is_open()) {
         
           std::printf("Error opening file!");

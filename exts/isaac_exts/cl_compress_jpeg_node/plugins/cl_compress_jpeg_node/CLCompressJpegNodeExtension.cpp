@@ -36,12 +36,12 @@ namespace cl_compress_jpeg_node
 //namespace omnigraph_node
 //{
 
-class ExampleOmniGraphNodeExtension : public omni::ext::IExt
+class CLCompressJpegNodeExtension : public omni::ext::IExt
 {
 public:
     void onStartup(const char* extId) override
     {
-        printf("ExampleOmniGraphNodeExtension starting up (ext_id: %s).\n", extId);
+        printf("CLCompressJpegNodeExtension starting up (ext_id: %s).\n", extId);
         printf("HIIIII");
         // This macro walks the list of pending node type definitions and registers them with OmniGraph
         INITIALIZE_OGN_NODES()
@@ -49,7 +49,7 @@ public:
 
     void onShutdown() override
     {
-        printf("ExampleOmniGraphNodeExtension shutting down.\n");
+        printf("CLCompressJpegNodeExtension shutting down.\n");
         // This macro walks the list of registered node type definitions and deregisters all of them. This is required
         // for hot reload to work.
         RELEASE_OGN_NODES()
@@ -63,10 +63,10 @@ private:
 //}
 }
 
-CARB_PLUGIN_IMPL(pluginImplDesc, cl_compress_jpeg_node::ExampleOmniGraphNodeExtension)
+CARB_PLUGIN_IMPL(pluginImplDesc, cl_compress_jpeg_node::CLCompressJpegNodeExtension)
 //CARB_PLUGIN_IMPL(pluginImplDesc, omni::example::cpp::omnigraph_node::ExampleOmniGraphNodeExtension)
 
-void fillInterface(cl_compress_jpeg_node::ExampleOmniGraphNodeExtension& iface)
+void fillInterface(cl_compress_jpeg_node::CLCompressJpegNodeExtension& iface)
 //void fillInterface(omni::example::cpp::omnigraph_node::ExampleOmniGraphNodeExtension& iface)
 {
 }

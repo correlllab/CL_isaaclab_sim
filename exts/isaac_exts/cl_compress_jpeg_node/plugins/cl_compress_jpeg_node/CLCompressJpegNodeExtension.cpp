@@ -29,12 +29,6 @@ DECLARE_OGN_NODES()
 
 namespace cl_compress_jpeg_node
 {
-//namespace example
-//{
-//namespace cpp
-//{
-//namespace omnigraph_node
-//{
 
 class CLCompressJpegNodeExtension : public omni::ext::IExt
 {
@@ -58,15 +52,10 @@ public:
 private:
 };
 
-//}
-//}
-//}
 }
 
 CARB_PLUGIN_IMPL(pluginImplDesc, cl_compress_jpeg_node::CLCompressJpegNodeExtension)
-//CARB_PLUGIN_IMPL(pluginImplDesc, omni::example::cpp::omnigraph_node::ExampleOmniGraphNodeExtension)
 
 void fillInterface(cl_compress_jpeg_node::CLCompressJpegNodeExtension& iface)
-//void fillInterface(omni::example::cpp::omnigraph_node::ExampleOmniGraphNodeExtension& iface)
 {
 }

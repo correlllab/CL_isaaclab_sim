@@ -9,7 +9,7 @@
     "categories": ["math:conversion"],
     "inputs": {
       "input_buffer": {
-        "type": "float",
+        "type": "float[]",
         "uiName": "input_buffer",
         "description": "buffer for input rgb8 image data"
       },

@@ -105,6 +105,7 @@ temp/
 *.bak
 *.backup
 *.old
+.isaac_cache
 
 
 

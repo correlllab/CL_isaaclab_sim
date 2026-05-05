@@ -5,7 +5,7 @@ project_ext(ext)
 
 -- --------------------------------------------------------------------------------------------------------------
 -- Helper variable containing standard configuration information for projects containing OGN files.
-local ogn = get_ogn_project_information(ext, "omni/example/cpp/omnigraph_node_ros")
+local ogn = get_ogn_project_information(ext, "cl_ros2_publish_compressed_jpeg")
 
 
 -- --------------------------------------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ repo_build.prebuild_link {
 -- In a mixed extension this would be part of a separate Python-based project but since here it is just the one
 -- file it can be copied directly with no build dependencies.
 repo_build.prebuild_copy {
-    { "omni/example/cpp/omnigraph_node_ros/__init__.py", ogn.python_target_path }
+    { "cl_ros2_publish_compressed_jpeg/__init__.py", ogn.python_target_path }
 }
 
 

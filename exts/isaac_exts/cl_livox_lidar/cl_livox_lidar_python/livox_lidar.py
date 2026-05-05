@@ -8,12 +8,13 @@ import omni.replicator.core as rep
 from pxr import Gf
 from isaacsim.sensors.rtx import LidarRtx
 
-if "/home/code/exts/isaac_exts/utils" not in sys.path:
-    sys.path.append("/home/code/exts/isaac_exts/utils")
+if "/home/code/CL_isaaclab_sim/exts/isaac_exts/utils" not in sys.path:
+    sys.path.append("/home/code/CL_isaaclab_sim/exts/isaac_exts/utils")
 
+print(f"\n\n{sys.path=}\n\n")
 from utils import log_func, get_prim_transformations, euler_to_quat, quat_to_euler
 
-with open("/home/code/exts/isaac_exts/cl_sensor_configs/livox_lidar.json") as f:
+with open("/home/code/CL_isaaclab_sim/exts/isaac_exts/cl_sensor_configs/livox_lidar.json") as f:
     try:
         sensor_attributes = json.load(f)
     except json.JSONDecodeError:

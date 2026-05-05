@@ -10,7 +10,7 @@ from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sim.spawners.from_files.from_files_cfg import GroundPlaneCfg, UsdFileCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
-from tasks.common_config import   CameraBaseCfg  # isort: skip
+# from tasks.common_config import   CameraBaseCfg  # isort: skip
 import os
 project_root = os.environ.get("PROJECT_ROOT")
 @configclass
@@ -26,8 +26,8 @@ class TableCylinderSceneCfg(InteractiveSceneCfg): # inherit from the interactive
             rot=[1.0, 0.0, 0.0, 0.0]
         ),
         spawn=UsdFileCfg(
-            #usd_path=f"{ISAAC_NUCLEUS_DIR}/Environments/Simple_Warehouse/warehouse.usd",  # use simple room model
-            usd_path=f"{ISAAC_NUCLEUS_DIR}/Environments/Grid/gridroom_black.usd",  # use simple room model
+            usd_path=f"{ISAAC_NUCLEUS_DIR}/Environments/Simple_Warehouse/warehouse.usd",  # use simple room model
+            # usd_path=f"{ISAAC_NUCLEUS_DIR}/Environments/Grid/gridroom_black.usd",  # use simple room model
         ),
     )
     # print(f"ISAAC_NUCLEUS_DIR: {ISAAC_NUCLEUS_DIR}")
@@ -130,7 +130,7 @@ class TableCylinderSceneCfg(InteractiveSceneCfg): # inherit from the interactive
                                      intensity=3000.0),    # light intensity
     )
 
-    world_camera = CameraBaseCfg.get_camera_config(prim_path="/World/PerspectiveCamera",
-                                                    pos_offset=(-0.1, 3.6, 1.6),
-                                                    rot_offset=( -0.00617,0.00617, 0.70708, -0.70708),
-                                                    focal_length = 16.5)
+    # world_camera = CameraBaseCfg.get_camera_config(prim_path="/World/PerspectiveCamera",
+    #                                                 pos_offset=(-0.1, 3.6, 1.6),
+    #                                                 rot_offset=( -0.00617,0.00617, 0.70708, -0.70708),
+    #                                                 focal_length = 16.5)

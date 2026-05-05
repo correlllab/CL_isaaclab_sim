@@ -127,13 +127,13 @@ class Realsense:
 
         if self.role == CamType.DEPTH:
             fetch = "ROS2PublishPointCloud"
-            topic = "/aligned_depth_to_color/image_raw/test_pc"
+            topic = "/aligned_depth_to_color/image_raw/testpc"
             #topic = "/aligned_depth_to_color/image_raw/compressedDepth"
         elif self.role == CamType.RGB:
             fetch = "ROS2PublishImage"
-            topic = "color/image_raw/test_img"
+            topic = "/color/image_raw/testimg"
             #topic = "/color/image_raw/compressed"
-
+        
         writer = rep.writers.get(rv + fetch)
         writer.initialize(
             frameId=self.name,

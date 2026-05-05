@@ -5,9 +5,11 @@ import threading
 from typing import Dict, List, Optional
 from unitree_sdk2py.core.channel import ChannelFactoryInitialize
 from dds.dds_base import DDSObject
-
-
-
+import os
+# FACTORY_ID = int(os.getenv("ROS_DOMAIN_ID"))
+# assert FACTORY_ID > 0, "Please set ROS_DOMAIN_ID environment variable to a positive integer for DDS channel factory initialization, domain id 0 reserved for real robot"
+FACTORY_ID = 1  # default to 1 for simulation, can be overridden by environment variable
+print("\n\n\n FACTORY ID HARD CODED TO 1 in DDS MASTER.PY\n\n\n")
 class DDSManager:    
     _instance = None
     _lock = threading.Lock()
@@ -57,7 +59,7 @@ class DDSManager:
             return True
         
         try:
-            ChannelFactoryInitialize(1)
+            ChannelFactoryInitialize(FACTORY_ID)
             self.dds_initialized = True
             print("[DDSManager] DDS system initialized")
             return True

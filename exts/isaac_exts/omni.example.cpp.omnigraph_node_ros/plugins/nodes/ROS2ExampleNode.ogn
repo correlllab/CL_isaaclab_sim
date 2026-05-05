@@ -1,0 +1,24 @@
+{
+    "ROS2ExampleNode": {
+        "version": 1,
+        "icon": "icons/isaac-sim.svg",
+        "description": [
+            "This node publishes the given string as a ROS message"
+        ],
+        "metadata": {
+            "uiName": "ROS2 Publish String"
+        },
+        "categories": ["tutorials"],
+        "inputs": {
+            "execIn": {
+                "type": "execution",
+                "description": "The input execution port."
+            },
+            "publishString": {
+                "type": "string",
+                "description": "String which you want to publish",
+                "default" : "Hello from my custom ROS 2 OmniGraph Node"
+            }
+        }
+    }
+}

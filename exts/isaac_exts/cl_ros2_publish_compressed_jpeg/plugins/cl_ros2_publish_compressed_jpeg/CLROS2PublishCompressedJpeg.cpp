@@ -17,7 +17,7 @@
 #include <omni/graph/core/ogn/Registration.h>
 
 // Standard plugin definitions required by Carbonite.
-const struct carb::PluginImplDesc pluginImplDesc = { "omni.example.cpp.omnigraph_node_ros.plugin",
+const struct carb::PluginImplDesc pluginImplDesc = { "cl_ros2_publish_compressed_jpeg",
                                                      "An example C++ extension.", "NVIDIA",
                                                      carb::PluginHotReload::eEnabled, "dev" };
 
@@ -29,16 +29,10 @@ CARB_PLUGIN_IMPL_DEPS(omni::graph::core::IGraphRegistry,
 // This macro sets up the information required to register your node type definitions with OmniGraph
 DECLARE_OGN_NODES()
 
-namespace omni
-{
-namespace example
-{
-namespace cpp
-{
-namespace omnigraph_node_ros
+namespace cl_ros2_publish_compressed_jpeg
 {
 
-class ExampleOmniGraphNodeROSExtension : public omni::ext::IExt
+class CLROS2PublishCompressedJpegExt : public omni::ext::IExt
 {
 public:
     void onStartup(const char* extId) override
@@ -60,12 +54,9 @@ private:
 };
 
 }
-}
-}
-}
 
-CARB_PLUGIN_IMPL(pluginImplDesc, omni::example::cpp::omnigraph_node_ros::ExampleOmniGraphNodeROSExtension)
+CARB_PLUGIN_IMPL(pluginImplDesc, cl_ros2_publish_compressed_jpeg::CLROS2PublishCompressedJpegExt)
 
-void fillInterface(omni::example::cpp::omnigraph_node_ros::ExampleOmniGraphNodeROSExtension& iface)
+void fillInterface(cl_ros2_publish_compressed_jpeg::CLROS2PublishCompressedJpegExt& iface)
 {
 }

@@ -2,7 +2,7 @@
 version = "1.0.1" # Semantic Versioning is used: https://semver.org/
 
 # These fields are used primarily for display in the extension browser UI.
-title = "CL ROs2 Publish Compressed Jpeg"
+title = "CL ROS2 Publish Compressed Jpeg"
 #description = "Demonstrates how to create a ROS2 C++ node for OmniGraph"
 #category = "Example"
 #keywords = ["example", "C++", "cpp", "Graph", "Node", "OmniGraph"]

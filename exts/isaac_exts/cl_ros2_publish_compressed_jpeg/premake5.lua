@@ -6,6 +6,8 @@ project_ext(ext)
 -- --------------------------------------------------------------------------------------------------------------
 -- Helper variable containing standard configuration information for projects containing OGN files.
 local ogn = get_ogn_project_information(ext, "cl_ros2_publish_compressed_jpeg")
+ext.group = "omnigraph"
+
 
 
 -- --------------------------------------------------------------------------------------------------------------
@@ -59,7 +61,7 @@ project_ext_plugin(ext, ogn.plugin_project)
         "%{target_deps}/system_ros/include/rcl_yaml_param_parser",
 
         -- Additional sourced ROS workspace includes
-        "%{target_deps}/additional_ros/include/tutorial_interfaces",
+        --"%{target_deps}/additional_ros/include/tutorial_interfaces",
     }
 
     libdirs {
@@ -67,7 +69,7 @@ project_ext_plugin(ext, ogn.plugin_project)
         "%{target_deps}/system_ros/lib",
 
         -- Additional sourced ROS workspace libraries
-        "%{target_deps}/additional_ros/lib",
+        --"%{target_deps}/additional_ros/lib",
     }
 
     links{
@@ -79,7 +81,7 @@ project_ext_plugin(ext, ogn.plugin_project)
 
         -- Add dependencies of the custom message with its libs
         "geometry_msgs__rosidl_typesupport_c", "geometry_msgs__rosidl_typesupport_c",
-        "tutorial_interfaces__rosidl_typesupport_c", "tutorial_interfaces__rosidl_generator_c",
+        --"tutorial_interfaces__rosidl_typesupport_c", "tutorial_interfaces__rosidl_generator_c",
     }
 
     filter { "system:linux" }

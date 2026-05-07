@@ -111,6 +111,8 @@ class Realsense:
             position=position,
             orientation=orientation,
         )
+        self.camera.initialize()
+        self.camera.add_rgb_to_frame()
         return self
 
     @log_func
@@ -121,60 +123,71 @@ class Realsense:
 
     @log_func
     def _publish_data(self):
-        rv = omni.syntheticdata.SyntheticData.convert_sensor_type_to_rendervar(
-            sd.SensorType.DistanceToImagePlane.name
-        )
-
-        if self.role == CamType.DEPTH:
-            fetch = "ROS2PublishPointCloud"
-            topic = "/aligned_depth_to_color/image_raw/testpc"
-            #topic = "/aligned_depth_to_color/image_raw/compressedDepth"
-        elif self.role == CamType.RGB:
-            fetch = "ROS2PublishImage"
-            topic = "/color/image_raw/testimg"
-            #topic = "/color/image_raw/compressed"
         
-        writer = rep.writers.get(rv + fetch)
-        writer.initialize(
-            frameId=self.name,
-            nodeNamespace=self.name,
-            queueSize=self.queue_size,
-            topicName=topic,
-        )
-        writer.attach([self.rp_path])
-        gate_path = omni.syntheticdata.SyntheticData._get_node_path(
-            rv + "IsaacSimulationGate", self.rp_path
-        )
-        og.Controller.attribute(gate_path + ".inputs:step").set(self.step_size)
+        #self.camera.add_rgb_to_frame()
+        with open("/home/code/camera_get_rgb_test.txt", "w") as f:
+            f.write(str(self.camera.get_rgb(device="cpu")))
+            f.write("\n\n\n")
+            f.write(str(len(self.camera.get_rgb())))
+            f.write(str(len(self.camera.get_rgb()[1])))
+        print(self.camera.get_rgb())
+
+        #rv = omni.syntheticdata.SyntheticData.convert_sensor_type_to_rendervar(
+        #    sd.SensorType.DistanceToImagePlane.name
+        #)
+
+        #if self.role == CamType.DEPTH:
+        #    #fetch = "ROS2PublishPointCloud"
+        #    #topic = "/aligned_depth_to_color/image_raw/testpc"
+        #    #topic = "/aligned_depth_to_color/image_raw/compressedDepth"
+        #    return self
+        #elif self.role == CamType.RGB:
+        #    fetch = "ROS2PublishImage"
+        #    topic = "/color/image_raw/testimg"
+        #    #topic = "/color/image_raw/compressed"
+        #
+        #writer = rep.writers.get(rv + fetch)
+        #writer.initialize(
+        #    frameId=self.name,
+        #    nodeNamespace=self.name,
+        #    queueSize=self.queue_size,
+        #    topicName=topic,
+        #    encoding="rgb8"
+        #)
+        #writer.attach([self.rp_path])
+        #gate_path = omni.syntheticdata.SyntheticData._get_node_path(
+        #    rv + "IsaacSimulationGate", self.rp_path
+        #)
+        #og.Controller.attribute(gate_path + ".inputs:step").set(self.step_size)
         return self
 
     @log_func
     def _publish_camera_info(self):
-        if self.role == CamType.DEPTH:
-            topic = "/aligned_depth_to_color/camera_info"
-        elif self.role == CamType.RGB:
-            topic = "/color/camera_info"
-
-        camera_info, _ = read_camera_info(self.rp_path)
-        writer = rep.writers.get("ROS2PublishCameraInfo")
-        writer.initialize(
-            frameId=self.name,
-            nodeNamespace=self.name,
-            queueSize=self.queue_size,
-            topicName=topic,
-            width=camera_info.width,
-            height=camera_info.height,
-            projectionType=camera_info.distortion_model,
-            k=camera_info.k.reshape([1, 9]),
-            r=camera_info.r.reshape([1, 9]),
-            p=camera_info.p.reshape([1, 12]),
-            physicalDistortionModel=camera_info.distortion_model,
-            physicalDistortionCoefficients=camera_info.d,
-        )
-        writer.attach([self.rp_path])
-        gate_path = omni.syntheticdata.SyntheticData._get_node_path(
-            "PostProcessDispatchIsaacSimulationGate", self.rp_path
-        )
-        og.Controller.attribute(gate_path + ".inputs:step").set(self.step_size)
+#        if self.role == CamType.DEPTH:
+#            topic = "/aligned_depth_to_color/camera_info"
+#        elif self.role == CamType.RGB:
+#            topic = "/color/camera_info"
+#
+#        camera_info, _ = read_camera_info(self.rp_path)
+#        writer = rep.writers.get("ROS2PublishCameraInfo")
+#        writer.initialize(
+#            frameId=self.name,
+#            nodeNamespace=self.name,
+#            queueSize=self.queue_size,
+#            topicName=topic,
+#            width=camera_info.width,
+#            height=camera_info.height,
+#            projectionType=camera_info.distortion_model,
+#            k=camera_info.k.reshape([1, 9]),
+#            r=camera_info.r.reshape([1, 9]),
+#            p=camera_info.p.reshape([1, 12]),
+#            physicalDistortionModel=camera_info.distortion_model,
+#            physicalDistortionCoefficients=camera_info.d,
+#        )
+#        writer.attach([self.rp_path])
+#        gate_path = omni.syntheticdata.SyntheticData._get_node_path(
+#            "PostProcessDispatchIsaacSimulationGate", self.rp_path
+#        )
+#        og.Controller.attribute(gate_path + ".inputs:step").set(self.step_size)
         return self
 

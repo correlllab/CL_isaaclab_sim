@@ -26,7 +26,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
             rot=[1.0, 0.0, 0.0, 0.0]
         ),
         spawn=UsdFileCfg(
-            usd_path=f"{project_root}/assets/objects/small_warehouse_digital_twin/small_warehouse_digital_twin.usd",  # use simple room model
+            usd_path=f"{project_root}/CL_Assets/objects/small_warehouse_digital_twin/small_warehouse_digital_twin.usd",  # use simple room model
         ),
     )
 
@@ -37,7 +37,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
         init_state=AssetBaseCfg.InitialStateCfg(pos=[-4.3,-4.2,-0.2],   # initial position [x, y, z]
                                                 rot=[1.0, 0.0, 0.0, 0.0]), # initial rotation [x, y, z, w]
         spawn=UsdFileCfg(
-            usd_path=f"{project_root}/assets/objects/table_with_yellowbox.usd",    # table model file
+            usd_path=f"{project_root}/CL_Assets/objects/table_with_yellowbox.usd",    # table model file
             # rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),    # set to kinematic object
         ),
     )

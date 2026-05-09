@@ -35,7 +35,7 @@ class TablePickRedblockIntoDrawerSceneCfg(InteractiveSceneCfg): # inherit from t
             rot=[1.0, 0.0, 0.0, 0.0]
         ),
         spawn=UsdFileCfg(
-            usd_path=f"{project_root}/assets/objects/small_warehouse/small_warehouse_digital_twin.usd",  # use simple room model
+            usd_path=f"{project_root}/CL_Assets/objects/small_warehouse/small_warehouse_digital_twin.usd",  # use simple room model
         ),
     )
 
@@ -88,7 +88,7 @@ class TablePickRedblockIntoDrawerSceneCfg(InteractiveSceneCfg): # inherit from t
         prim_path="/World/envs/env_.*/Cabinet",
         spawn=sim_utils.UsdFileCfg(
             ## update sektion_cabinet_instanceable.usd with the bottom_drawer's collider approximation as convex_decomposition.
-            usd_path=f"{project_root}/assets/objects/drawers/cabinet_collider.usd",
+            usd_path=f"{project_root}/CL_Assets/objects/drawers/cabinet_collider.usd",
             # usd_path=f"{ISAAC_NUCLEUS_DIR}/Isaac/Props/Furniture/Sektion_Cabinet/sektion_cabinet_instanceable.usd",
             activate_contact_sensors=False,
             # 设置刚体属性，为抽屉把手优化摩擦力

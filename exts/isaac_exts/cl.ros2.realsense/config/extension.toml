@@ -9,12 +9,6 @@ order = 0
 
 [package]
 version = "0.1.0"
-category = "graph"
-title = "CL Realsense Node"
-description = "N/A"
-authors = ["N/A"]
-repository = "N/A"
-keywords = ["N/A"]
 changelog = "docs/CHANGELOG.md"
 readme = "docs/README.md"
 preview_image = "data/preview.png"
@@ -23,25 +17,12 @@ icon = "data/icon.png"
 [dependencies]
 "omni.graph" = {}
 "omni.graph.tools" = {}
+"isaacsim.ros2.bridge" = {}
 
 # define the Python module that the extension provides
 [[python.module]]
-name = "cl_realsense_node"
-
-# define the Python module for tests
-[[python.module]]
-name = "cl_realsense_node.tests"
+name = "cl.ros2.realsense"
 
 [settings]
-exts."cl_realsense_node".timeout = 5
+exts."cl.ros2.realsense".timeout = 5
 
-# disable startup test
-[[test]]
-name = "startup"
-enabled = false
-
-[[test]]
-enabled = true
-dependencies = [
-    "omni.kit.test",
-]

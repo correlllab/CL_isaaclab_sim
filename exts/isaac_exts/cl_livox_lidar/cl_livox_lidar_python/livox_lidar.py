@@ -29,35 +29,35 @@ class LivoxLidar:
     @log_func
     def initialize(self):
         global sensor_attributes
-#        stage = omni.usd.get_context().get_stage()
-#        position, orient_quat, _ = get_prim_transformations(stage.GetPrimAtPath(self.prim_base_path))
-#        print(f"{position=}")
-#        print(f"{orient_quat=}")
-#        orient_euler = quat_to_euler(orient_quat)
-#        try:
-#            omni_lidar_prim = rep.functional.create.omni_lidar(position, orient_euler, self.name, self.prim_base_path)
-#        except Exception as e:
-#            import traceback
-#            traceback.print_exc()
-#            print(e)
-#            raise RuntimeError
-#        prim_path = self.prim_base_path + self.name
-#        sensor = LidarRtx(prim_path = prim_path, translation = position, orientation = orient_quat, config_file_name = "Example_Rotary", **sensor_attributes,)
-#        sensor.initialize()
-#
-#        rp = rep.create.render_product(sensor.prim_path, [1, 1])
-#        self.render_product_path = rp.path
-#        sensor.attach_annotator("IsaacCreateRTXLidarScanBuffer")
+        stage = omni.usd.get_context().get_stage()
+        position, orient_quat, _ = get_prim_transformations(stage.GetPrimAtPath(self.prim_base_path))
+        print(f"{position=}")
+        print(f"{orient_quat=}")
+        orient_euler = quat_to_euler(orient_quat)
+        try:
+            omni_lidar_prim = rep.functional.create.omni_lidar(position, orient_euler, self.name, self.prim_base_path)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(e)
+            raise RuntimeError
+        prim_path = self.prim_base_path + self.name
+        sensor = LidarRtx(prim_path = prim_path, translation = position, orientation = orient_quat, config_file_name = "Example_Rotary", **sensor_attributes,)
+        sensor.initialize()
+
+        rp = rep.create.render_product(sensor.prim_path, [1, 1])
+        self.render_product_path = rp.path
+        sensor.attach_annotator("IsaacCreateRTXLidarScanBuffer")
         return self
 
     @log_func
     def _publish_data(self):
-#        writer = rep.writers.get("RtxLidar" + "ROS2PublishPointCloud")
-#        writer.initialize(
-#            topicName="/livox/lidar",
-#            frameId="lidar_link",
-#                )
-#        writer.attach([self.render_product_path])
+        writer = rep.writers.get("RtxLidar" + "ROS2PublishPointCloud")
+        writer.initialize(
+            topicName="/livox/lidar",
+            frameId="lidar_link",
+                )
+        writer.attach([self.render_product_path])
         return self
 
 

@@ -7,6 +7,7 @@ import logging
 from dataclasses import dataclass
 from typing import Tuple 
 import omni.usd
+from nvjpeg import NvJpeg
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -52,6 +53,10 @@ class RealsenseCM:
     
     @staticmethod
     def publish_rgb_stream(camera: Camera, freq = 10):
+        img = camera.get
+
+        jpeg_bytes = nj.encode(img)
+
         render_product = camera.render_product_path
         step_size = int(60/freq)
         topic_name = camera.name

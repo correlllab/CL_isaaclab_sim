@@ -1,0 +1,23 @@
+{
+    "ClRos2RealsensePy": {
+        "version": 1,
+        "language": "python",
+        "icon": "icons/icon.svg",
+        "uiName": "OgnClRos2RealsensePy",
+        "description": [
+            "The description key value is required on all nodes and will be used in the generated documentation of the node.",
+            "Visit https://docs.omniverse.nvidia.com/kit/docs/omni.graph.docs/latest/dev/ogn/ogn_reference_guide.html",
+            "for a detailed guide to the syntax of the .ogn file.",
+            "Visit https://docs.omniverse.nvidia.com/kit/docs/omni.graph.docs/latest/dev/ogn/attribute_types.html",
+            "for more details about the supported attribute data types for inputs and outputs."
+        ],
+        "categoryDefinitions": "config/CategoryDefinition.json",
+        "categories": ["extension:Category"],
+        "inputs": {
+            "execIn": {
+                "type": "execution",
+                "description": "Input execution trigger"
+            }
+      }
+  }
+}

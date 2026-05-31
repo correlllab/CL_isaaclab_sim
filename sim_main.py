@@ -28,6 +28,7 @@ from unitree_sdk2py.idl.std_msgs.msg.dds_._String_ import String_
 
 # Isaac Lab AppLauncher
 from isaaclab.app import AppLauncher
+import carb
 
 from dds.dds_create import create_dds_objects,create_dds_objects_replay
 # add command line arguments
@@ -407,11 +408,14 @@ def main():
     #    readers[name] = DataReader(read_sub,  read_topic,  qos, listener)
     #    writers[name] = DataWriter(write_pub, write_topic, qos, listener)
     #    
+    carb.settings.get_settings().set_string("/log/level", "Error")
+    carb.settings.get_settings().set_string("/log/fileLogLevel", "Error")
+    carb.settings.get_settings().set_string("/log/outputStreamLevel", "Error")
 
     simulation_app.app.get_extension_manager().add_path("/home/code/CL_isaaclab_sim/exts/isaac_exts")
     simulation_app.app.get_extension_manager().refresh_registry()
-    simulation_app.app.get_extension_manager().set_extension_enabled_immediate("cl_realsense-1.0.1", True)
-    simulation_app.app.get_extension_manager().set_extension_enabled_immediate("cl_livox_lidar-1.0.1", True)
+    #simulation_app.app.get_extension_manager().set_extension_enabled_immediate("cl_realsense-1.0.1", True)
+    #simulation_app.app.get_extension_manager().set_extension_enabled_immediate("cl_livox_lidar-1.0.1", True)
     print("Note: The DDS in Sim transmits messages on channel 1. Please ensure that other DDS instances use the same channel for message exchange by setting: ChannelFactoryInitialize(1).")
     try:
         # start controller - start asynchronous components

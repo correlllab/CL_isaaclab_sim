@@ -30,6 +30,7 @@ share/python-wheels/
 MANIFEST
 teleimager
 .isaac_cache/
+*pyc
 # ================================
 # env
 # ================================
@@ -124,3 +125,4 @@ data/
 assets/
 assets.*
 assets
+todo.txt

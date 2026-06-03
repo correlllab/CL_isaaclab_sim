@@ -5,14 +5,11 @@
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ActuatorNetMLPCfg, DCMotorCfg, ImplicitActuatorCfg
 from isaaclab.assets.articulation import ArticulationCfg
-from isaaclab.utils.assets import ISAACLAB_NUCLEUS_DIR
 import os
-project_root = os.environ.get("PROJECT_ROOT")
 
 H12_CFG_WITH_INSPIRE_HAND = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-       # usd_path=f"/home/code/CL_Assets/isaac_assets/robots/h1_2-26dof-inspire-base-fix-usd/h1_2_26dof_with_inspire_rev_1_0.usd",
-        usd_path=f"/home/code/cl_assets/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense.usd",
+        usd_path="/home/code/CL_Assets/isaac_assets/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense.usd",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
@@ -189,3 +186,4 @@ H12_CFG_WITH_INSPIRE_HAND = ArticulationCfg(
 
     },
 )
+breakpoint()

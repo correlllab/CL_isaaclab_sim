@@ -38,8 +38,8 @@ class TableCylinderSceneCfg(InteractiveSceneCfg): # inherit from the interactive
         init_state=AssetBaseCfg.InitialStateCfg(pos=[0.0, 0.55, -0.2],   # initial position [x, y, z]
                                                 rot=[1.0, 0.0, 0.0, 0.0]), # initial rotation [x, y, z, w]
         spawn=UsdFileCfg(
-            # usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/PackingTable/packing_table.usd",    # table model file
-            usd_path=f"/home/code/cl_assets/ikea_table_usd/model_PINNTORP_table_light_brown_stained_white_stained_185x75cm.usd",    # table model file
+            usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/PackingTable/packing_table.usd",    # table model file
+            #usd_path=f"/home/code/CL_Assets/isaac_assets/ikea_table_usd/model_PINNTORP_table_light_brown_stained_white_stained_185x75cm.usd",
             rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),    # set to kinematic object
         ),
     )

@@ -18,7 +18,9 @@ import rclpy
 from rclpy.node import Node
 from omni.kit.async_engine import run_coroutine
 from isaacsim.core.nodes import BaseResetNode
+from isaacsim.sensors.physx import _range_sensor
 
+import numpy as np
 import omni.kit
 
 class OgnClRos2LivoxPyInternalState(BaseResetNode):
@@ -36,7 +38,6 @@ class OgnClRos2LivoxPyInternalState(BaseResetNode):
         super().__init__(initialize=False)
 
     def initialize(self):
-        breakpoint()
         try:
             rclpy.init()
         except:
@@ -72,14 +73,15 @@ class OgnClRos2LivoxPyInternalState(BaseResetNode):
 
         if not self._timeline:
             self._timeline = omni.timeline.get_timeline_interface()
+
         self.initialized = True
 
     async def publish_livox_lidar_data(self):
-        breakpoint()
         try:
             await omni.kit.app.get_app().next_update_async()
             self._timeline.pause()
             lidar_data = self._lidar_interface.get_point_cloud_data("/World/Lidar")
+            lidar_data = np.reshape(lidar_data, (-1, 3))
             ros_dtype = PointField.FLOAT32
             dtype = np.float32
             itemsize = np.dtype(dtype).itemsize
@@ -87,7 +89,7 @@ class OgnClRos2LivoxPyInternalState(BaseResetNode):
             data = lidar_data.astype(dtype).tobytes()
             fields = [PointField(name=n, offset=i*itemsize, datatype=ros_dtype, count=1) for i, n in enumerate('xyz')]
 
-            header = Header(frame_id="map", stamp=self.get_clock().now().to_msg())
+            header = Header(frame_id="map", stamp=self._ros2_node.get_clock().now().to_msg())
 
             self._lidar_publisher.publish(PointCloud2(
                 header=header,
@@ -133,6 +135,8 @@ class OgnClRos2LivoxPy:
     def compute(db) -> bool:
         """Compute the output based on inputs and internal state"""
         state = db.per_instance_state
+        if not state.initialized:
+            state.initialize()
 
         try:
             run_coroutine(state.publish_livox_lidar_data())

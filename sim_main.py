@@ -183,6 +183,7 @@ def main():
     print("\ncreate environment...")
     try:
         env_cfg.seed = args_cli.seed
+        breakpoint()
         env = gym.make(args_cli.task, cfg=env_cfg).unwrapped
         env.seed(args_cli.seed)
         try:

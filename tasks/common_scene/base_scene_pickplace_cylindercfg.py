@@ -35,7 +35,7 @@ class TableCylinderSceneCfg(InteractiveSceneCfg): # inherit from the interactive
         # 1. table configuration
     packing_table = AssetBaseCfg(
         prim_path="/World/envs/env_.*/PackingTable",    # table in the scene
-        init_state=AssetBaseCfg.InitialStateCfg(pos=[0.0, 0.55, -0.2],   # initial position [x, y, z]
+        init_state=AssetBaseCfg.InitialStateCfg(pos=[0.0, 0.55, 0.0],   # initial position [x, y, z]
                                                 rot=[1.0, 0.0, 0.0, 0.0]), # initial rotation [x, y, z, w]
         spawn=UsdFileCfg(
             usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/PackingTable/packing_table.usd",    # table model file

@@ -19,9 +19,12 @@ from rclpy.node import Node
 from omni.kit.async_engine import run_coroutine
 from isaacsim.core.nodes import BaseResetNode
 from isaacsim.sensors.physx import _range_sensor
+import isaacsim.core.utils.stage as stage_utils
 
 import numpy as np
 import omni.kit
+import traceback
+import asyncio
 
 class OgnClRos2LivoxPyInternalState(BaseResetNode):
     """Convenience class for maintaining per-node state information"""
@@ -52,8 +55,8 @@ class OgnClRos2LivoxPyInternalState(BaseResetNode):
         if not self._lidar_prim:
             result, self._lidar_prim = omni.kit.commands.execute(
             "RangeSensorCreateLidar",
-            path="/Lidar",
-            parent="/World",
+            path="/livox_lidar",
+            parent="/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/lidar_link",
             min_range=0.4,
             max_range=100.0,
             draw_points=True,
@@ -68,19 +71,26 @@ class OgnClRos2LivoxPyInternalState(BaseResetNode):
             enable_semantics=True,
         )
 
+
         if not self._lidar_publisher:
             self._lidar_publisher = self._ros2_node.create_publisher(msg_type=PointCloud2, topic="/test_pc", qos_profile=10)
 
         if not self._timeline:
             self._timeline = omni.timeline.get_timeline_interface()
 
+        if not self._timeline:
+            breakpoint()
+
+
         self.initialized = True
 
     async def publish_livox_lidar_data(self):
         try:
             await omni.kit.app.get_app().next_update_async()
+            await stage_utils.update_stage_async()
             self._timeline.pause()
-            lidar_data = self._lidar_interface.get_point_cloud_data("/World/Lidar")
+            lidar_data = self._lidar_interface.get_point_cloud_data("/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/lidar_link/livox_lidar")
+
             lidar_data = np.reshape(lidar_data, (-1, 3))
             ros_dtype = PointField.FLOAT32
             dtype = np.float32
@@ -105,8 +115,12 @@ class OgnClRos2LivoxPyInternalState(BaseResetNode):
             
             self._timeline.play()
             print(f"published {lidar_data.shape[0]} points")
+            print(lidar_data.shape)
         except:
             print(f"publishing failed")
+            print(lidar_data.shape)
+            traceback.print_exc()
+            
 
     def batch_wipe_reset(self):
         if self._ros2_node:
@@ -141,6 +155,7 @@ class OgnClRos2LivoxPy:
         try:
             run_coroutine(state.publish_livox_lidar_data())
         except Exception as e:
+            breakpoint()
             db.log_error(f"Computation error: {e}")
             return False
         return True

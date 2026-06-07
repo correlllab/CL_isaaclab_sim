@@ -1,16 +1,16 @@
 {
   "cameras": {
     "l_depth": {
-      "path": "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/L_hand_base_link/CL_L_realsense/rsd455/RSD455/Camera_Pseudo_Depth"
+      "path": "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0/L_hand_base_link"
     },
     "l_rgb": {
-      "path": "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/L_hand_base_link/CL_L_realsense/rsd455/RSD455/Camera_OmniVision_OV9782_Color"
+      "path": "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0/L_hand_base_link"
     },
     "r_depth": {
-      "path": "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/R_hand_base_link/CL_R_realsense/rsd455/RSD455/Camera_Pseudo_Depth"
+      "path": "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0/R_hand_base_link"
     },
     "r_rgb": {
-      "path": "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense/R_hand_base_link/CL_R_realsense/rsd455/RSD455/Camera_OmniVision_OV9782_Color"
+      "path": "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0/R_hand_base_link"
     }
   }
 }

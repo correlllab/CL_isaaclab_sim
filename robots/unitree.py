@@ -9,7 +9,7 @@ import os
 
 H12_CFG_WITH_INSPIRE_HAND = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path="/home/code/CL_Assets/isaac_assets/h1_2_26dof_with_inspire_rev_1_0_with_CL_realsense.usd",
+        usd_path="/home/code/CL_Assets/isaac_assets/h1_2-26dof-inspire-base-fix-usd/h1_2_26dof_with_inspire_rev_1_0.usd",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
@@ -21,7 +21,7 @@ H12_CFG_WITH_INSPIRE_HAND = ArticulationCfg(
             max_depenetration_velocity=1.0,
         ),
         articulation_props=sim_utils.ArticulationRootPropertiesCfg(
-            enabled_self_collisions=True, 
+            enabled_self_collisions=False, 
             solver_position_iteration_count=8,
             solver_velocity_iteration_count=4
         ),

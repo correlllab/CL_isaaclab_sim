@@ -18,6 +18,41 @@
                 "type": "execution",
                 "uiName": "execution",
                 "description": "execution"
+            },
+            "pos_w": {
+                "type": "float[3]",
+                "uiName": "pos_w",
+                "description": "pos_w"
+            },
+            "quat_w": {
+                "type": "quatf[4]",
+                "uiName": "quat_w",
+                "description": "quat_w"
+            },
+            "projected_gravity_b": {
+                "type": "float[3]",
+                "uiName": "projected_gravity_b",
+                "description": "projected_gravity_b"
+            },
+            "lin_vel_b": {
+                "type": "float[3]",
+                "uiName": "lin_vel_b",
+                "description": "lin_vel_b"
+            },
+            "lin_acc_b": {
+                "type": "float[3]",
+                "uiName": "lin_acc_b",
+                "description": "lin_acc_b"
+            },
+            "ang_vel_b": {
+                "type": "float[3]",
+                "uiName": "ang_vel_b",
+                "description": "ang_vel_b"
+            },
+            "ang_acc_b": {
+                "type": "float[3]",
+                "uiName": "ang_acc_b",
+                "description": "ang_acc_b"
             }
         }
     }

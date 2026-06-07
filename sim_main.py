@@ -16,15 +16,6 @@ import signal
 import torch
 import gymnasium as gym
 from pathlib import Path
-from cyclonedds.topic import Topic
-from cyclonedds.sub import DataReader, Qos, Listener, Subscriber
-from cyclonedds.pub import Publisher, DataWriter
-from cyclonedds.domain import Domain, DomainParticipant
-from unitree_sdk2py.idl.unitree_go.msg.dds_._MotorStates_ import *
-from unitree_sdk2py.idl.unitree_hg.msg.dds_._LowState_ import *
-from unitree_sdk2py.idl.unitree_go.msg.dds_._MotorCmds_ import *
-from unitree_sdk2py.idl.unitree_hg.msg.dds_._LowCmd_ import *
-from unitree_sdk2py.idl.std_msgs.msg.dds_._String_ import String_
 
 # Isaac Lab AppLauncher
 from isaaclab.app import AppLauncher
@@ -183,7 +174,6 @@ def main():
     print("\ncreate environment...")
     try:
         env_cfg.seed = args_cli.seed
-        breakpoint()
         env = gym.make(args_cli.task, cfg=env_cfg).unwrapped
         env.seed(args_cli.seed)
         try:
@@ -382,42 +372,33 @@ def main():
     else:
         setup_signal_handlers(controller)
     
-    #dp_1 = DomainParticipant(1)
-    #dp_2 = DomainParticipant(0)
-    #qos = Qos()
-    #listener = Listener()
-    #sub_d1 = Subscriber(dp_1, qos, listener)
-    #sub_d2 = Subscriber(dp_2, qos, listener)
-    #pub_d1 = Publisher(dp_1, qos, listener)
-    #pub_d2 = Publisher(dp_2, qos, listener)
-    #bridges = [
-    #    ("lowstate", "rt/lowstate", LowState_, 1, 2),
-    #    ("inspire_state", "rt/inspire/state", MotorStates_, 1, 2),
-    #    ("sim_state", "rt/sim_state", String_, 1, 2),
-    #    ("rewards_state", "rt/rewards_state", String_, 1, 2),
-    #    ("inspire_cmd", "rt/inspire/cmd", MotorCmds_, 2, 1),
-    #    ("low_cmd", "rt/lowcmd", LowCmd_, 2, 1),
-    #    ("reset_pose_cmd", "rt/reset_pose/cmd", String_, 2, 1)]
-    #participants = {1: (dp_1, sub_d1, pub_d1), 2: (dp_2, sub_d2, pub_d2)}
-    #readers = {}
-    #writers = {}
-    #for name, topic_str, msg_type, read_domain, write_domain in bridges:
-    #    read_dp,  read_sub,  _  = participants[read_domain]
-    #    write_dp, _, write_pub = participants[write_domain]
-    #    read_topic  = Topic(read_dp,  topic_str, msg_type, qos, listener)
-    #    write_topic = Topic(write_dp, topic_str, msg_type, qos, listener)
-    #    readers[name] = DataReader(read_sub,  read_topic,  qos, listener)
-    #    writers[name] = DataWriter(write_pub, write_topic, qos, listener)
-    #    
-    carb.settings.get_settings().set_string("/log/level", "Error")
-    carb.settings.get_settings().set_string("/log/fileLogLevel", "Error")
-    carb.settings.get_settings().set_string("/log/outputStreamLevel", "Error")
+    #carb.settings.get_settings().set_string("/log/level", "Error")
+    #carb.settings.get_settings().set_string("/log/fileLogLevel", "Error")
+    #carb.settings.get_settings().set_string("/log/outputStreamLevel", "Error")
 
-    simulation_app.app.get_extension_manager().add_path("/home/code/CL_isaaclab_sim/exts/isaac_exts")
-    simulation_app.app.get_extension_manager().refresh_registry()
-    #simulation_app.app.get_extension_manager().set_extension_enabled_immediate("cl_realsense-1.0.1", True)
-    #simulation_app.app.get_extension_manager().set_extension_enabled_immediate("cl_livox_lidar-1.0.1", True)
-    print("Note: The DDS in Sim transmits messages on channel 1. Please ensure that other DDS instances use the same channel for message exchange by setting: ChannelFactoryInitialize(1).")
+    #simulation_app.app.get_extension_manager().add_path("/home/code/CL_isaaclab_sim/exts/isaac_exts")
+    #simulation_app.app.get_extension_manager().refresh_registry()
+    #import isaacsim.core.utils.extensions as extensions_utils
+    #extensions_utils.enable_extension("cl.ros2.realsense")
+    #extensions_utils.enable_extension("cl.ros2.livox")
+    #import omni.graph.core as og
+    #try:
+    #    keys = og.Controller.Keys
+    #    graph_handle, list_of_nodes, _, _ = og.Controller.edit(
+    #        {"graph_path": "/action_graph3", "evaluator_name": "execution"},
+    #        {
+    #            keys.CREATE_NODES: [("tick", "omni.graph.action.OnPlaybackTick"), ("livox", "cl.ros2.livox.ClRos2LivoxPy"), ("realsense", "cl.ros2.realsense.ClRos2RealsensePy")],
+    #            keys.SET_VALUES: [([0.0, 0.0, 0.0, 0.0], "livox.inputs:pos_w"), ([0.0, 0.0, 0.0, 0.0], "livox.inputs:quat_w"), ([0.0, 0.0, 0.0], "livox.inputs:projected_gravity_b"), ([0.0, 0.0, 0.0], "livox.inputs:lin_vel_b"), ([0.0, 0.0, 0.0], "livox.inputs:ang_vel_b"), ([0.0, 0.0, 0.0], "livox.inputs:lin_acc_b"), ([0.0, 0.0, 0.0], "livox.inputs:ang_acc_b")],
+    #            keys.CONNECT: [("tick.outputs:tick", "realsense.inputs:execIn"), ("tick.outputs:tick", "livox.inputs:execution")],
+    #        },
+    #    )
+    #except:
+    #    import traceback
+    #    traceback.print_exc()
+
+#    print("Note: The DDS in Sim transmits messages on channel 1. Please ensure that other DDS instances use the same channel for message exchange by setting: ChannelFactoryInitialize(1).")
+    env.reset()
+    env.sim.reset()
     try:
         # start controller - start asynchronous components
         print("========= start controller =========")
@@ -439,9 +420,11 @@ def main():
             while simulation_app.is_running() and controller.is_running:
                 current_time = time.time()
                 loop_count += 1
+
                 if not args_cli.replay_data:
                     try:
                         env_state = env.scene.get_state()
+
                         env_state_json =  sim_state_to_json(env_state)
                         with open("/home/code/.resetsimstate", "w") as f:
                             f.write(env_state_json)
@@ -560,8 +543,11 @@ def main():
     except KeyboardInterrupt:
         print("\nuser interrupted program")
     
+        traceback.print_exc()
     except Exception as e:
         print(f"\nprogram exception: {e}")
+        import traceback
+        traceback.print_exc()
     
     finally:
         # clean up resources
@@ -579,6 +565,10 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+
+    except:
+        import traceback
+        traceback.print_exc()
     finally:
         print("Performing final cleanup...")
         
@@ -627,6 +617,8 @@ if __name__ == "__main__":
                                 
         except Exception as e:
             print(f"Error during process cleanup: {e}")
+            import traceback
+            traceback.print_exc()
         
         try:
             simulation_app.close()

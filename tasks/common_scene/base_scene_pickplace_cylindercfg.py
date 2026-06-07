@@ -10,6 +10,7 @@ from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sim.spawners.from_files.from_files_cfg import GroundPlaneCfg, UsdFileCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
+from isaaclab.sensors import ImuCfg
 # from tasks.common_config import   CameraBaseCfg  # isort: skip
 import os
 project_root = os.environ.get("PROJECT_ROOT")
@@ -26,78 +27,25 @@ class TableCylinderSceneCfg(InteractiveSceneCfg): # inherit from the interactive
             rot=[1.0, 0.0, 0.0, 0.0]
         ),
         spawn=UsdFileCfg(
-            usd_path=f"{ISAAC_NUCLEUS_DIR}/Environments/Simple_Warehouse/warehouse.usd",  # use simple room model
-            # usd_path=f"{ISAAC_NUCLEUS_DIR}/Environments/Grid/gridroom_black.usd",  # use simple room model
+            usd_path=f"/home/code/Lightwheel_Kitchen/Collected_KitchenRoom/KitchenRoom.usd",  # use simple room model
         ),
     )
-    # print(f"ISAAC_NUCLEUS_DIR: {ISAAC_NUCLEUS_DIR}")
-    #ISAAC_NUCLEUS_DIR: http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.5/Isaac
-        # 1. table configuration
-    packing_table = AssetBaseCfg(
-        prim_path="/World/envs/env_.*/PackingTable",    # table in the scene
-        init_state=AssetBaseCfg.InitialStateCfg(pos=[0.0, 0.55, 0.0],   # initial position [x, y, z]
-                                                rot=[1.0, 0.0, 0.0, 0.0]), # initial rotation [x, y, z, w]
-        spawn=UsdFileCfg(
-            usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/PackingTable/packing_table.usd",    # table model file
-            #usd_path=f"/home/code/CL_Assets/isaac_assets/ikea_table_usd/model_PINNTORP_table_light_brown_stained_white_stained_185x75cm.usd",
-            rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),    # set to kinematic object
-        ),
-    )
-
-    #packing_table_2 = AssetBaseCfg(
-    #    prim_path="/World/envs/env_.*/PackingTable_2",   
-    #    init_state=AssetBaseCfg.InitialStateCfg(pos=[-3.5, 0.55, -0.2],  
-    #                                            rot=[1.0, 0.0, 0.0, 0.0]), 
+    #packing_table = AssetBaseCfg(
+    #    prim_path="/World/envs/env_.*/PackingTable",    # table in the scene
+    #    init_state=AssetBaseCfg.InitialStateCfg(pos=[0.0, 0.55, 0.0],   # initial position [x, y, z]
+    #                                            rot=[1.0, 0.0, 0.0, 0.0]), # initial rotation [x, y, z, w]
     #    spawn=UsdFileCfg(
-    #        usd_path=f"{project_root}/CL_Assets/objects/PackingTable/PackingTable.usd",    # table model file
-    #        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
+    #        usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/PackingTable/packing_table.usd",    # table model file
+    #        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),    # set to kinematic object
     #    ),
     #)
-    #packing_table_3 = AssetBaseCfg(
-    #    prim_path="/World/envs/env_.*/PackingTable_3",   
-    #    init_state=AssetBaseCfg.InitialStateCfg(pos=[3.5, 0.55, -0.2],  
-    #                                            rot=[1.0, 0.0, 0.0, 0.0]), 
-    #    spawn=UsdFileCfg(
-    #        usd_path=f"{project_root}/CL_Assets/objects/PackingTable/PackingTable.usd",    # table model file
-    #        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
-    #    ),
-    #)
-    #packing_table_4 = AssetBaseCfg(
-    #    prim_path="/World/envs/env_.*/PackingTable_4",   
-    #    init_state=AssetBaseCfg.InitialStateCfg(pos=[3.5, -5, -0.2],  
-    #                                            rot=[1.0, 0.0, 0.0, 0.0]), 
-    #    spawn=UsdFileCfg(
-    #        usd_path=f"{project_root}/CL_Assets/objects/PackingTable/PackingTable.usd",    # table model file
-    #        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
-    #    ),
-    #)
-    #packing_table_5 = AssetBaseCfg(
-    #    prim_path="/World/envs/env_.*/PackingTable_5",   
-    #    init_state=AssetBaseCfg.InitialStateCfg(pos=[-3.5, -5, -0.2],  
-    #                                            rot=[1.0, 0.0, 0.0, 0.0]), 
-    #    spawn=UsdFileCfg(
-    #        usd_path=f"{project_root}/CL_Assets/objects/PackingTable/PackingTable.usd",    # table model file
-    #        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
-    #    ),
-    #)
-    #packing_table_6 = AssetBaseCfg(
-    #    prim_path="/World/envs/env_.*/PackingTable_6",   
-    #    init_state=AssetBaseCfg.InitialStateCfg(pos=[0.0, -5, -0.2],  
-    #                                            rot=[1.0, 0.0, 0.0, 0.0]), 
-    #    spawn=UsdFileCfg(
-    #        usd_path=f"{project_root}/CL_Assets/objects/PackingTable/PackingTable.usd",    # table model file
-    #        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),   
-    #    ),
-    #)
-    # Object
-    # 2. object configuration (cylinder)     
     object = RigidObjectCfg(
         prim_path="/World/envs/env_.*/Object",    # object in the scene
-        init_state=RigidObjectCfg.InitialStateCfg(pos=[-0.35, 0.40, 0.84], # initial position (pos) 
+        init_state=RigidObjectCfg.InitialStateCfg(pos=[-0.35, 0.40, 3], # initial position (pos) 
                                                   rot=[1, 0, 0, 0]), # initial rotation (rot)
         spawn=sim_utils.CylinderCfg(
-            radius=0.001,
-            height=0.001,
+            radius=0.01,
+            height=0.01,
  #           radius=0.018,    # cylinder radius (radius)
  #           height=0.35,     # cylinder height (height)
  #
@@ -115,12 +63,14 @@ class TableCylinderSceneCfg(InteractiveSceneCfg): # inherit from the interactive
             ),
         ),
     )
+
+    test_imu = ImuCfg(prim_path="/World/envs/env_0/Robot/lidar_link", gravity_bias=(0, 0, 0), debug_vis=True)
     # Ground plane
     # 3. ground configuration
-    # ground = AssetBaseCfg(
-    #     prim_path="/World/GroundPlane",    # ground in the scene
-    #     spawn=GroundPlaneCfg( ),    # ground configuration
-    # )
+    ground = AssetBaseCfg(
+        prim_path="/World/GroundPlane",    # ground in the scene
+        spawn=GroundPlaneCfg( ),    # ground configuration
+    )
 
     # Lights
     # 4. light configuration

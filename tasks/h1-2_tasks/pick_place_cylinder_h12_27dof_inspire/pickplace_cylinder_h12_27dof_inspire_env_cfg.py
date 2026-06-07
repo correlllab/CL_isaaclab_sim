@@ -23,6 +23,7 @@ from tasks.common_event.event_manager import SimpleEvent, SimpleEventManager
 # import public scene configuration
 from tasks.common_scene.base_scene_pickplace_cylindercfg import TableCylinderSceneCfg
 
+from isaaclab.sensors import ImuCfg
 ##
 # Scene definition
 ##
@@ -132,7 +133,9 @@ class PickPlaceH1227dofInspireBaseFixEnvCfg(ManagerBasedRLEnvCfg):
     events = EventCfg()                                  # event configuration
     commands = None # command manager
     rewards: RewardsCfg = RewardsCfg()  # reward manager
+    #breakpoint()
     curriculum = None # curriculum manager
+    #test_imu = ImuCfg(prim_path="{ENV_REGEX_NS}/Robot/h1_2_26dof_with_inspire_rev_1_0/imu_link", gravity_bias=(0, 0, 0), debug_vis=True)
     def __post_init__(self):
         """Post initialization."""
         # general settings

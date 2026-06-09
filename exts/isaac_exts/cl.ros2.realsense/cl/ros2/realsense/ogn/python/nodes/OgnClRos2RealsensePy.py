@@ -13,6 +13,8 @@ from nvjpeg import NvJpeg
 import io
 from PIL import Image
 import traceback
+import omni.usd
+from pxr import UsdGeom
 class OgnClRos2RealsensePyInternalState(BaseResetNode):
     """Convenience class for maintaining per-node state information"""
 
@@ -37,13 +39,18 @@ class OgnClRos2RealsensePyInternalState(BaseResetNode):
 
         if not self._cameras:
             self._cameras = []
+            stage = omni.usd.get_context().get_stage()
 
             for cam_name in camera_config['cameras']:
+                #if not stage.GetPrimAtPath(camera_config['cameras'][cam_name]['path']).IsA(UsdGeom.Camera):
+                prim = UsdGeom.Xform.Define(stage, camera_config['cameras'][cam_name]['path'])
+                UsdGeom.Camera.Define(stage, camera_config['cameras'][cam_name]['path'])
                 if "rgb" in cam_name:
                     cam = Camera(prim_path=camera_config['cameras'][cam_name]['path'], name=cam_name, resolution=(1280, 720))
                     cam.initialize()
                     cam.add_rgb_to_frame()
                 elif "depth" in cam_name:
+                    #cam = Camera(prim_path=camera_config['cameras'][cam_name]['path'], name=cam_name, resolution=(1280, 720))
                     cam = SingleViewDepthSensor(prim_path=camera_config['cameras'][cam_name]['path'], name=cam_name, resolution=(1280, 720))
                     cam.initialize(attach_rgb_annotator=False)
                     #cam.attach_annotator("DepthSensorDistance")
@@ -51,6 +58,11 @@ class OgnClRos2RealsensePyInternalState(BaseResetNode):
                 else:
                     print("no-op")
 
+                #from pxr import UsdGeom
+                #import omni.usd
+                #stage = omni.usd.get_context().get_stage()
+                #prim = UsdGeom.Xform.Define(stage, "/World/h1_2_26dof_with_inspire_rev_1_0/left_hand_base_link/rgb")
+                #UsdGeom.Camera.Define(stage, prim.GetPath())
                 self._cameras.append(cam)
 
         if not self._jpeg_publishers:
@@ -79,19 +91,24 @@ class OgnClRos2RealsensePyInternalState(BaseResetNode):
             raw_data = cam_obj.get_rgb()
             jpeg = self._nvjpeg.encode(raw_data, jpeg_accuracy)
         elif "depth" in target_cam_name:
+            #breakpoint()
             raw_gray_data = cam_obj.get_current_frame()["distance_to_image_plane"]
             #credit to sheikh-nv for coming up with this normalization code, this was taken from isaacsim source code
-            valid_mask = np.isfinite(raw_gray_data)
-            valid_values = raw_gray_data[valid_mask]
-            vmin, vmax = np.min(valid_values), np.max(valid_values)
-            depth_clean = np.where(valid_mask, raw_gray_data, vmin)
-            normalized = (depth_clean - vmin) / (vmax - vmin)
-            depth_u8 = (normalized * 255).astype(np.uint8)
-            img = Image.fromarray(depth_u8, 'L')
-            
-            buf = io.BytesIO()
-            img.save(buf, format='JPEG', quality=jpeg_accuracy)
-            jpeg = buf.getvalue()
+            if raw_gray_data is not None:
+                valid_mask = np.isfinite(raw_gray_data)
+                valid_values = raw_gray_data[valid_mask]
+                vmin, vmax = np.min(valid_values), np.max(valid_values)
+                depth_clean = np.where(valid_mask, raw_gray_data, vmin)
+                normalized = (depth_clean - vmin) / (vmax - vmin)
+                depth_u8 = (normalized * 255).astype(np.uint8)
+                img = Image.fromarray(depth_u8, 'L')
+                
+                buf = io.BytesIO()
+                img.save(buf, format='JPEG', quality=jpeg_accuracy)
+                jpeg = buf.getvalue()
+
+            else:
+                return []
         else:
             print("something weird happened")
         try:
@@ -134,6 +151,7 @@ class OgnClRos2RealsensePy:
                 msg.header.frame_id = cam.name
                 msg.format = "jpeg"
                 msg.data = state.get_latest_cam_data_as_jpeg(cam.name)
+                print(f"publishing {msg.data}")
                 state._jpeg_publishers[cam.name].publish(msg)
 
         except Exception as e:

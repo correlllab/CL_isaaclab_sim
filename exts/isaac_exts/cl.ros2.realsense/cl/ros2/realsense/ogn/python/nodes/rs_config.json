@@ -1,16 +1,16 @@
 {
   "cameras": {
     "l_depth": {
-      "path": "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0/L_hand_base_link"
+      "path": "/World/envs/env_0/Robot/left_hand_camera_base_link/depth"
     },
     "l_rgb": {
-      "path": "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0/L_hand_base_link"
+      "path": "/World/envs/env_0/Robot/left_hand_camera_base_link/rgb"
     },
     "r_depth": {
-      "path": "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0/R_hand_base_link"
+      "path": "/World/envs/env_0/Robot/right_hand_camera_base_link/depth"
     },
     "r_rgb": {
-      "path": "/World/envs/env_0/Robot/h1_2_26dof_with_inspire_rev_1_0/R_hand_base_link"
+      "path": "/World/envs/env_0/Robot/right_hand_camera_base_link/rgb"
     }
   }
 }

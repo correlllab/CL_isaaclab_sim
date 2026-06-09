@@ -14,7 +14,7 @@
         "categoryDefinitions": "config/CategoryDefinition.json",
         "categories": ["extension:Category"],
         "inputs": {
-            "execIn": {
+            "execution": {
                 "type": "execution",
                 "description": "Input execution trigger"
             }

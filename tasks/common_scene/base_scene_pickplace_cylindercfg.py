@@ -27,7 +27,7 @@ class TableCylinderSceneCfg(InteractiveSceneCfg): # inherit from the interactive
             rot=[1.0, 0.0, 0.0, 0.0]
         ),
         spawn=UsdFileCfg(
-            usd_path=f"/home/code/Lightwheel_Kitchen/Collected_KitchenRoom/KitchenRoom.usd",  # use simple room model
+            usd_path=f"{ISAAC_NUCLEUS_DIR}/Environments/Grid/gridroom_black.usd",  # use simple room model
         ),
     )
     #packing_table = AssetBaseCfg(

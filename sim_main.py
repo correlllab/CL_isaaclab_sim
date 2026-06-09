@@ -376,25 +376,25 @@ def main():
     #carb.settings.get_settings().set_string("/log/fileLogLevel", "Error")
     #carb.settings.get_settings().set_string("/log/outputStreamLevel", "Error")
 
-    #simulation_app.app.get_extension_manager().add_path("/home/code/CL_isaaclab_sim/exts/isaac_exts")
-    #simulation_app.app.get_extension_manager().refresh_registry()
-    #import isaacsim.core.utils.extensions as extensions_utils
-    #extensions_utils.enable_extension("cl.ros2.realsense")
-    #extensions_utils.enable_extension("cl.ros2.livox")
-    #import omni.graph.core as og
-    #try:
-    #    keys = og.Controller.Keys
-    #    graph_handle, list_of_nodes, _, _ = og.Controller.edit(
-    #        {"graph_path": "/action_graph3", "evaluator_name": "execution"},
-    #        {
-    #            keys.CREATE_NODES: [("tick", "omni.graph.action.OnPlaybackTick"), ("livox", "cl.ros2.livox.ClRos2LivoxPy"), ("realsense", "cl.ros2.realsense.ClRos2RealsensePy")],
-    #            keys.SET_VALUES: [([0.0, 0.0, 0.0, 0.0], "livox.inputs:pos_w"), ([0.0, 0.0, 0.0, 0.0], "livox.inputs:quat_w"), ([0.0, 0.0, 0.0], "livox.inputs:projected_gravity_b"), ([0.0, 0.0, 0.0], "livox.inputs:lin_vel_b"), ([0.0, 0.0, 0.0], "livox.inputs:ang_vel_b"), ([0.0, 0.0, 0.0], "livox.inputs:lin_acc_b"), ([0.0, 0.0, 0.0], "livox.inputs:ang_acc_b")],
-    #            keys.CONNECT: [("tick.outputs:tick", "realsense.inputs:execIn"), ("tick.outputs:tick", "livox.inputs:execution")],
-    #        },
-    #    )
-    #except:
-    #    import traceback
-    #    traceback.print_exc()
+    simulation_app.app.get_extension_manager().add_path("/home/code/CL_isaaclab_sim/exts/isaac_exts")
+    simulation_app.app.get_extension_manager().refresh_registry()
+    import isaacsim.core.utils.extensions as extensions_utils
+    extensions_utils.enable_extension("cl.ros2.realsense")
+    extensions_utils.enable_extension("isaacsim.ros2.bridge")
+    extensions_utils.enable_extension("cl.ros2.livox")
+    import omni.graph.core as og
+    try:
+        keys = og.Controller.Keys
+        graph_handle, list_of_nodes, _, _ = og.Controller.edit(
+            {"graph_path": "/action_graph3", "evaluator_name": "execution"},
+            {
+                keys.CREATE_NODES: [("tick", "omni.graph.action.OnPlaybackTick"), ("livox", "cl.ros2.livox.ClRos2LivoxPy"), ("realsense", "cl.ros2.realsense.ClRos2RealsensePy")],
+                keys.CONNECT: [("tick.outputs:tick", "livox.inputs:execution"), ("tick.outputs:tick", "realsense.inputs:execution")],
+            },
+        )
+    except:
+        import traceback
+        traceback.print_exc()
 
 #    print("Note: The DDS in Sim transmits messages on channel 1. Please ensure that other DDS instances use the same channel for message exchange by setting: ChannelFactoryInitialize(1).")
     env.reset()
@@ -420,7 +420,21 @@ def main():
             while simulation_app.is_running() and controller.is_running:
                 current_time = time.time()
                 loop_count += 1
+                imu_data = env.scene['test_imu'].data
+                quat_w = imu_data.quat_w.cpu().numpy().tolist()
+                projected_gravity_b = imu_data.projected_gravity_b.cpu().numpy().tolist()
+                pos_w = imu_data.pos_w.cpu().numpy().tolist()
+                lin_vel_b = imu_data.lin_vel_b.cpu().numpy().tolist()
+                lin_acc_b = imu_data.lin_acc_b.cpu().numpy().tolist()
+                ang_vel_b = imu_data.ang_vel_b.cpu().numpy().tolist()
+                ang_acc_b = imu_data.ang_acc_b.cpu().numpy().tolist()
 
+                og.Controller.attribute("/action_graph3/livox.inputs:quat_w").set(quat_w)
+                og.Controller.attribute("/action_graph3/livox.inputs:pos_w").set(pos_w)
+                og.Controller.attribute("/action_graph3/livox.inputs:lin_vel_b").set(lin_vel_b)
+                og.Controller.attribute("/action_graph3/livox.inputs:lin_acc_b").set(lin_acc_b)
+                og.Controller.attribute("/action_graph3/livox.inputs:ang_acc_b").set(ang_acc_b)
+                og.Controller.attribute("/action_graph3/livox.inputs:ang_vel_b").set(ang_vel_b)
                 if not args_cli.replay_data:
                     try:
                         env_state = env.scene.get_state()

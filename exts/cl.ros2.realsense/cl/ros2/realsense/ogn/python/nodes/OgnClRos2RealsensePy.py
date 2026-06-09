@@ -142,7 +142,7 @@ class OgnClRos2RealsensePy:
         state = db.per_instance_state
         try:
             if not state.initialized:
-                state.initialize(node_name="cl_ros2_realsense_node", json_config_path="/home/code/CL_isaaclab_sim/exts/isaac_exts/cl.ros2.realsense/cl/ros2/realsense/ogn/python/nodes/rs_config.json")
+                state.initialize(node_name="cl_ros2_realsense_node", json_config_path="/home/code/CL_isaaclab_sim/exts/cl.ros2.realsense/cl/ros2/realsense/ogn/python/nodes/rs_config.json")
 
             msg_batch = []
             for cam in state._cameras:

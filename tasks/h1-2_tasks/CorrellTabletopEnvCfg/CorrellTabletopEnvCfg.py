@@ -13,15 +13,22 @@ from isaaclab.managers import SceneEntityCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.utils import configclass
-from isaaclab.assets import ArticulationCfg
+from isaaclab.assets import ArticulationCfg, AssetBaseCfg, RigidObjectCfg
+from isaaclab.scene import InteractiveSceneCfg
+from isaaclab.sim.spawners.from_files.from_files_cfg import GroundPlaneCfg, UsdFileCfg
+from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
+import isaaclab.sim as sim_utils
 from . import mdp
 # use Isaac Lab native event system
 
-from tasks.common_config import  H12RobotPresets#, CameraPresets  # isort: skip
-from tasks.common_event.event_manager import SimpleEvent, SimpleEventManager
+#from robots.robot_configs import H12RobotPresets
+from envs.common import H12RobotPresets
+#from tasks.common_config import  H12RobotPresets#, CameraPresets  # isort: skip
+from envs.common import SimpleEvent, SimpleEventManager
+#from tasks.common_event.event_manager import SimpleEvent, SimpleEventManager
 
 # import public scene configuration
-from tasks.common_scene.base_scene_pickplace_cylindercfg import TableCylinderSceneCfg
+#from tasks.common_scene.base_scene_pickplace_cylindercfg import TableCylinderSceneCfg
 
 from isaaclab.sensors import ImuCfg
 ##
@@ -29,21 +36,55 @@ from isaaclab.sensors import ImuCfg
 ##
 
 @configclass
-class ObjectTableSceneCfg(TableCylinderSceneCfg):
-    """object table scene configuration class
-    inherits from G1SingleObjectSceneCfg, gets the complete G1 robot scene configuration
-    can add task-specific scene elements or override default configurations here
-    """
-    
-    # Humanoid robot w/ arms higher
-    # 5. humanoid robot configuration 
+class CorrellTabletopScene(InteractiveSceneCfg):
+    room_walls = AssetBaseCfg(
+        prim_path="/World/envs/env_.*/Room",
+        init_state=AssetBaseCfg.InitialStateCfg(
+            pos=[0.0, 0.0, 0],  # 房间中心点
+            rot=[1.0, 0.0, 0.0, 0.0]
+        ),
+        spawn=UsdFileCfg(
+            usd_path=f"{ISAAC_NUCLEUS_DIR}/Environments/Grid/gridroom_black.usd",  # use simple room model
+        ),
+    )
+
     robot: ArticulationCfg = H12RobotPresets.h12_27dof_inspire_base_fix()
+    object = RigidObjectCfg(
+        prim_path="/World/envs/env_.*/Object",    # object in the scene
+        init_state=RigidObjectCfg.InitialStateCfg(pos=[-0.35, 0.40, 3], # initial position (pos) 
+                                                  rot=[1, 0, 0, 0]), # initial rotation (rot)
+        spawn=sim_utils.CylinderCfg(
+            radius=0.001,
+            height=0.001,
+ #           radius=0.018,    # cylinder radius (radius)
+ #           height=0.35,     # cylinder height (height)
+ #
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+            ),    # rigid body properties configuration (rigid_props)
+            mass_props=sim_utils.MassPropertiesCfg(mass=0.4),    # mass properties configuration (mass)
+            collision_props=sim_utils.CollisionPropertiesCfg(),    # collision properties configuration (collision_props)
+            visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.15, 0.15, 0.15), metallic=1.0),    # visual material configuration (visual_material)
+            physics_material=sim_utils.RigidBodyMaterialCfg(
+                friction_combine_mode="max",    # friction combine mode
+                restitution_combine_mode="min",    # restitution combine mode
+                static_friction=1.5,    # static friction coefficient
+                dynamic_friction=1.5,    # dynamic friction coefficient
+                restitution=0.0,    # restitution coefficient (no restitution)
+            ),
+        ),
+    )
+ 
+    test_imu = ImuCfg(prim_path="/World/envs/env_0/Robot/lidar_link", gravity_bias=(0, 0, 0), debug_vis=True)
+    ground = AssetBaseCfg(
+        prim_path="/World/GroundPlane",    
+        spawn=GroundPlaneCfg()
+    )
 
-
-    # 6. add camera configuration 
-    #front_camera = CameraPresets.h12_front_camera()
-    #left_wrist_camera = CameraPresets.left_inspire_wrist_camera()
-    #right_wrist_camera = CameraPresets.right_inspire_wrist_camera()
+    light = AssetBaseCfg(
+        prim_path="/World/light",   
+        spawn=sim_utils.DomeLightCfg(color=(0.75, 0.75, 0.75), 
+                                     intensity=3000.0),
+    )
 
 ##
 # MDP settings
@@ -108,19 +149,19 @@ class EventCfg:
             # speed range parameter (empty dictionary means using default value)
             "velocity_range": {},
             # specify the object to reset
-            "asset_cfg": SceneEntityCfg("object"),
+            "asset_cfg": SceneEntityCfg("robot"),
         },
     )
 
 
 @configclass
-class PickPlaceH1227dofInspireBaseFixEnvCfg(ManagerBasedRLEnvCfg):
+class CorrellTabletopEnvCfg(ManagerBasedRLEnvCfg):
     """
     inherits from ManagerBasedRLEnvCfg, defines all configuration parameters for the entire environment
     """
 
     # 1. scene settings
-    scene: ObjectTableSceneCfg = ObjectTableSceneCfg(num_envs=1, # environment number: 1
+    scene = CorrellTabletopScene(num_envs=1, # environment number: 1
                                                      env_spacing=2.5, # environment spacing: 2.5 meter
                                                      replicate_physics=True # enable physics replication
                                                      )
@@ -134,8 +175,7 @@ class PickPlaceH1227dofInspireBaseFixEnvCfg(ManagerBasedRLEnvCfg):
     commands = None # command manager
     rewards: RewardsCfg = RewardsCfg()  # reward manager
     #breakpoint()
-    curriculum = None # curriculum manager
-    #test_imu = ImuCfg(prim_path="{ENV_REGEX_NS}/Robot/h1_2_26dof_with_inspire_rev_1_0/imu_link", gravity_bias=(0, 0, 0), debug_vis=True)
+    curriculum = None
     def __post_init__(self):
         """Post initialization."""
         # general settings

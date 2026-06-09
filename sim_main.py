@@ -376,7 +376,7 @@ def main():
     #carb.settings.get_settings().set_string("/log/fileLogLevel", "Error")
     #carb.settings.get_settings().set_string("/log/outputStreamLevel", "Error")
 
-    simulation_app.app.get_extension_manager().add_path("/home/code/CL_isaaclab_sim/exts/isaac_exts")
+    simulation_app.app.get_extension_manager().add_path("/home/code/CL_isaaclab_sim/exts")
     simulation_app.app.get_extension_manager().refresh_registry()
     import isaacsim.core.utils.extensions as extensions_utils
     extensions_utils.enable_extension("cl.ros2.realsense")

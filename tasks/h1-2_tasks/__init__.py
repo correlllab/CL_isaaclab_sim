@@ -1,4 +1,4 @@
-from . import pick_place_cylinder_h12_27dof_inspire
+from . import CorrellTabletopEnvCfg 
 __all__ = [
-        "pick_place_cylinder_h12_27dof_inspire",
+        "CorrellTabletopEnvCfg",
 ]

@@ -1,8 +1,5 @@
-# Copyright (c) 2025, Unitree Robotics Co., Ltd. All Rights Reserved.
+#Copyright (c) 2025, Unitree Robotics Co., Ltd. All Rights Reserved.
 # License: Apache License, Version 2.0  
-"""
-g1_29dof state
-"""     
 from __future__ import annotations
 
 import torch
@@ -35,11 +32,6 @@ def get_robot_boy_joint_names() -> list[str]:
         "right_knee_joint",
         "right_ankle_pitch_joint",
         "right_ankle_roll_joint",
-        # waist joints (3)
-        "waist_yaw_joint",
-        "waist_roll_joint",
-        "waist_pitch_joint",
-
         # arm joints (14)
         # left arm (7)
         "left_shoulder_pitch_joint",
@@ -85,7 +77,7 @@ from dds.dds_master import dds_manager
 _g1_robot_dds = None
 _dds_initialized = False
 
-# 观测缓存：索引张量与DDS限速（50FPS）+ 预分配缓冲
+
 _obs_cache = {
     "device": None,
     "batch": None,
@@ -98,15 +90,12 @@ _obs_cache = {
     "dds_last_ms": 0,
     "dds_min_interval_ms": 20,
 }
-
-# IMU 加速度缓存：用于通过速度差分计算加速度
 # IMU acceleration cache: for computing acceleration via velocity differentiation
 _imu_acc_cache = {
     "prev_vel": None,
     "dt": 0.01,
     "initialized": False,
 }
-
 def _get_g1_robot_dds_instance():
     """get the DDS instance, delay initialization"""
     global _g1_robot_dds, _dds_initialized
@@ -162,10 +151,17 @@ def get_robot_boy_joint_states(
     device = joint_pos.device
     batch = joint_pos.shape[0]
 
+    # get the body joint indices
+    # boy_joint_names = get_robot_boy_joint_names()
+    # all_joint_names = env.scene["robot"].data.joint_names
+    # boy_joint_indices = [all_joint_names.index(name) for name in boy_joint_names]
+    # print(f"boy_joint_indices: {boy_joint_indices}")
+
     # 预计算并缓存索引张量（列索引）
     global _obs_cache
     if _obs_cache["device"] != device or _obs_cache["boy_idx_t"] is None:
-        boy_joint_indices = [0, 3, 6, 9, 13, 17, 1, 4, 7, 10, 14, 18, 2, 5, 8, 11, 15, 19, 21, 23, 25, 27, 12, 16, 20, 22, 24, 26, 28]
+        boy_joint_indices = [3, 7, 0, 11, 15, 19, 4, 8, 1, 12, 16, 20, 5, 9, 13, 17, 21, 23, 25, 6, 10, 14, 18, 22, 24, 26]
+#[0, 3, 6, 9, 13, 17, 1, 4, 7, 10, 14, 18, 2, 5, 8, 11, 15, 19, 21, 23, 25, 27, 12, 16, 20, 22, 24, 26, 28]
         _obs_cache["boy_idx_t"] = torch.tensor(boy_joint_indices, dtype=torch.long, device=device)
         _obs_cache["device"] = device
         _obs_cache["batch"] = None  # force re-init batch-shaped buffers
@@ -188,7 +184,7 @@ def get_robot_boy_joint_states(
     torque_buf = _obs_cache["torque_buf"]
     combined_buf = _obs_cache["combined_buf"]
 
-    # 使用 gather(out=...) 填充，避免新张量分配
+    # 使用 gather(out=...) 
     try:
         torch.gather(joint_pos, 1, idx_batch, out=pos_buf)
         torch.gather(joint_vel, 1, idx_batch, out=vel_buf)
@@ -203,7 +199,7 @@ def get_robot_boy_joint_states(
     combined_buf[:, n:2*n].copy_(vel_buf)
     combined_buf[:, 2*n:3*n].copy_(torque_buf)
 
-    # write to DDS（限速发布，避免高频CPU拷贝）
+    # write to DDS（
     if enable_dds and combined_buf.shape[0] > 0:
         try:
             import time
@@ -221,9 +217,14 @@ def get_robot_boy_joint_states(
                         )
                         _obs_cache["dds_last_ms"] = now_ms
         except Exception as e:
-            print(f"[g1_state] Error writing robot state to DDS: {e}")
+            print(f"[h1_state] Error writing robot state to DDS: {e}")
     
     return combined_buf
+
+
+
+
+
 
 
 def quat_to_rot_matrix(q):
@@ -367,7 +368,7 @@ def get_robot_imu_data(env, use_torso_imu: bool = True, quat_w_first: bool = Non
     a_world_corrected = a_world - g_world  # [B,3]
 
     # prepare quaternion in (w,x,y,z)
-    quat_wxyz = ensure_quat_w_first(quat, assume_w_first=True)
+    quat_wxyz = ensure_quat_w_first(quat, assume_w_first=quat_w_first)
 
     # build rotation matrices R_body->world ; to convert world->body use R^T
     R_body_to_world = quat_to_rot_matrix(quat_wxyz)  # [B,3,3]
@@ -391,3 +392,147 @@ def get_robot_imu_data(env, use_torso_imu: bool = True, quat_w_first: bool = Non
 
     imu_data = torch.cat([pos, quat_wxyz, a_body, omega_body], dim=1)
     return imu_data
+# Copyright (c) 2025, Unitree Robotics Co., Ltd. All Rights Reserved.
+# License: Apache License, Version 2.0  
+"""
+gripper state
+"""      
+
+_obs_cache = {
+    "device": None,
+    "batch": None,
+    "inspire_idx_t": None,
+    "inspire_idx_batch": None,
+    "pos_buf": None,
+    "vel_buf": None,
+    "torque_buf": None,
+    "dds_last_ms": 0,
+    "dds_min_interval_ms": 20,
+}
+
+def get_robot_girl_joint_names() -> list[str]:
+    return [
+        "R_pinky_proximal_joint",
+        "R_ring_proximal_joint",
+        "R_middle_proximal_joint",
+        "R_index_proximal_joint",
+        "R_thumb_proximal_pitch_joint",
+        "R_thumb_proximal_yaw_joint",
+        "L_pinky_proximal_joint",
+        "L_ring_proximal_joint",
+        "L_middle_proximal_joint",
+        "L_index_proximal_joint",
+        "L_thumb_proximal_pitch_joint",
+        "L_thumb_proximal_yaw_joint",
+    ]
+
+# global variable to cache the DDS instance
+_inspire_dds = None
+_dds_initialized = False
+
+def _get_inspire_dds_instance():
+    """get the DDS instance, delay initialization"""
+    global _inspire_dds, _dds_initialized
+    
+    if not _dds_initialized or _inspire_dds is None:
+        try:
+            # dynamically import the DDS module
+            sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dds'))
+            from dds.dds_master import dds_manager
+            _inspire_dds = dds_manager.get_object("inspire")
+            print("[Observations] DDS communication instance obtained")
+            
+            # register the cleanup function
+            import atexit
+            def cleanup_dds():
+                try:
+                    if _inspire_dds:
+                        dds_manager.unregister_object("inspire")
+                        print("[gripper_state] DDS communication closed correctly")
+                except Exception as e:
+                    print(f"[gripper_state] Error closing DDS: {e}")
+            atexit.register(cleanup_dds)
+            
+        except Exception as e:
+            print(f"[Observations] Failed to get DDS instances: {e}")
+            _inspire_dds = None
+        
+        _dds_initialized = True
+    
+    return _inspire_dds
+
+
+
+def get_robot_inspire_joint_states(
+    env: ManagerBasedRLEnv,
+    enable_dds: bool = True,
+) -> torch.Tensor:
+    """get the robot gripper joint states and publish them to DDS
+    
+    Args:
+        env: ManagerBasedRLEnv - reinforcement learning environment instance
+        enable_dds: bool - whether to enable the DDS publish function
+    
+    返回:
+        torch.Tensor
+    """
+    # get the gripper joint states
+    joint_pos = env.scene["robot"].data.joint_pos
+    joint_vel = env.scene["robot"].data.joint_vel  
+    joint_torque = env.scene["robot"].data.applied_torque
+    device = joint_pos.device
+    batch = joint_pos.shape[0]
+    
+
+    global _obs_cache
+    if _obs_cache["device"] != device or _obs_cache["inspire_idx_t"] is None:
+        inspire_joint_indices = [36, 37, 35, 34, 48, 38, 31, 32, 30, 29, 43, 33]
+        _obs_cache["inspire_idx_t"] = torch.tensor(inspire_joint_indices, dtype=torch.long, device=device)
+        _obs_cache["device"] = device
+        _obs_cache["batch"] = None
+    idx_t = _obs_cache["inspire_idx_t"]
+    n = idx_t.numel()
+
+
+    if _obs_cache["batch"] != batch or _obs_cache["inspire_idx_batch"] is None:
+        _obs_cache["inspire_idx_batch"] = idx_t.unsqueeze(0).expand(batch, n)
+        _obs_cache["pos_buf"] = torch.empty(batch, n, device=device, dtype=joint_pos.dtype)
+        _obs_cache["vel_buf"] = torch.empty(batch, n, device=device, dtype=joint_pos.dtype)
+        _obs_cache["torque_buf"] = torch.empty(batch, n, device=device, dtype=joint_pos.dtype)
+        _obs_cache["batch"] = batch
+
+    idx_batch = _obs_cache["inspire_idx_batch"]
+    pos_buf = _obs_cache["pos_buf"]
+    vel_buf = _obs_cache["vel_buf"]
+    torque_buf = _obs_cache["torque_buf"]
+
+
+    try:
+        torch.gather(joint_pos, 1, idx_batch, out=pos_buf)
+        torch.gather(joint_vel, 1, idx_batch, out=vel_buf)
+        torch.gather(joint_torque, 1, idx_batch, out=torque_buf)
+    except TypeError:
+        pos_buf.copy_(torch.gather(joint_pos, 1, idx_batch))
+        vel_buf.copy_(torch.gather(joint_vel, 1, idx_batch))
+        torque_buf.copy_(torch.gather(joint_torque, 1, idx_batch))
+    
+    # publish to DDS (only publish the data of the first environment)
+    if enable_dds and len(pos_buf) > 0:
+        try:
+            import time
+            now_ms = int(time.time() * 1000)
+            if now_ms - _obs_cache["dds_last_ms"] >= _obs_cache["dds_min_interval_ms"]:
+                inspire_dds = _get_inspire_dds_instance()
+                if inspire_dds:
+                    pos = pos_buf[0].contiguous().cpu().numpy()
+                    vel = vel_buf[0].contiguous().cpu().numpy()
+                    torque = torque_buf[0].contiguous().cpu().numpy()
+                    # write the gripper state to shared memory
+                    inspire_dds.write_inspire_state(pos, vel, torque)
+                    _obs_cache["dds_last_ms"] = now_ms
+        except Exception as e:
+            print(f"[gripper_state] Failed to write to shared memory: {e}")
+    
+    return pos_buf
+
+

@@ -1,0 +1,26 @@
+[package]
+version = "1.0.2" # Semantic Versioning is used: https://semver.org/
+
+# These fields are used primarily for display in the extension browser UI.
+title = "Correll Lab ROS2 CPP Livox Lidar"
+description = "Demonstrates how to create a C++ node for OmniGraph"
+category = "Example"
+keywords = ["example", "C++", "cpp", "Graph", "Node", "OmniGraph"]
+authors = ["Kevin Picott <kpicott@nvidia.com>", "David Bosnich <dbosnich@nvidia.com>"]
+repository = "https://github.com/NVIDIA-Omniverse/kit-extension-template-cpp"
+
+[dependencies]
+"omni.graph.core" = {}
+"omni.graph.tools" = {}
+
+[[python.module]]
+name = "cl.ros2.cpp.livox.lidar"
+
+[[native.plugin]]
+path = "bin/*.plugin"
+
+[documentation]
+pages = [
+    "docs/Overview.md",
+    "docs/CHANGELOG.md",
+]

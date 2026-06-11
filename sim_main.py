@@ -30,20 +30,15 @@ parser.add_argument("--action_source", type=str, default="dds",
                    help="Action source")
 
 
-parser.add_argument("--robot_type", type=str, default="g129", help="robot type")
-parser.add_argument("--enable_dex1_dds", action="store_true", help="enable gripper DDS")
-parser.add_argument("--enable_dex3_dds", action="store_true", help="enable dexterous hand DDS")
 parser.add_argument("--enable_inspire_dds", action="store_true", help="enable inspire hand DDS")
 parser.add_argument("--stats_interval", type=float, default=10.0, help="statistics print interval (seconds)")
 
-parser.add_argument("--file_path", type=str, default="/home/unitree/Code/xr_teleoperate/teleop/utils/data", help="file path (when action_source=file)")
 parser.add_argument("--generate_data_dir", type=str, default="./data", help="save data dir")
 parser.add_argument("--generate_data", action="store_true", default=False, help="generate data")
 parser.add_argument("--rerun_log", action="store_true", default=False, help="rerun log")
 parser.add_argument("--replay_data",  action="store_true", default=False, help="replay data")
 
 parser.add_argument("--modify_light",  action="store_true", default=False, help="modify light")
-#parser.add_argument("--modify_camera",  action="store_true", default=False,    help="modify camera")
 
 # performance analysis parameters
 parser.add_argument("--step_hz", type=int, default=100, help="control frequency")
@@ -51,12 +46,7 @@ parser.add_argument("--enable_profiling", action="store_true", default=True, hel
 parser.add_argument("--profile_interval", type=int, default=500, help="performance analysis report interval (steps)")
 
 parser.add_argument("--model_path", type=str, default="assets/model/policy.onnx", help="model path")
-parser.add_argument("--reward_interval", type=int, default=10, help="step interval for reward calculation")
 parser.add_argument("--enable_wholebody_dds", action="store_true", default=False, help="enable wh dds")
-
-parser.add_argument("--physics_dt", type=float, default=None, help="physics time step, e.g., 0.005")
-parser.add_argument("--render_interval", type=int, default=None, help="render interval steps (>=1)")
-#parser.add_argument("--camera_write_interval", type=int, default=None, help="camera write interval steps (>=1)")
 
 
 parser.add_argument(

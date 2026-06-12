@@ -36,6 +36,9 @@ project_ext_plugin(ext, ogn.plugin_project)
     -- It is important that you add all subdirectories containing C++ code to this project
     add_files("source", "plugins/"..ogn.module)
     add_files("nodes", "plugins/nodes")
+    includedirs {
+      "/opt/conda/envs/unitree_sim_env/lib/python3.11/site-packages/isaacsim/exts/isaacsim.sensors.physx/include"
+    }
 
     -- Add the standard dependencies all OGN projects have; includes, libraries to link, and required compiler flags
     add_ogn_dependencies(ogn)

@@ -24,6 +24,8 @@ import carb
 from dds.dds_create import create_dds_objects,create_dds_objects_replay
 # add command line arguments
 parser = argparse.ArgumentParser(description="Unitree Simulation")
+parser.add_argument("--robot_type", type=str, default="h1_2", help="robot type")
+
 parser.add_argument("--task", type=str, default="Isaac-PickPlace-G129-Head-Waist-Fix", help="task name")
 parser.add_argument("--action_source", type=str, default="dds", 
                    choices=["dds", "file", "trajectory", "policy", "replay","dds_wholebody"], 
@@ -59,26 +61,15 @@ parser.add_argument("--solver_iterations", type=int, default=None, help="physx s
 parser.add_argument("--gravity_z", type=float, default=None, help="override gravity z (e.g., -9.8)")
 parser.add_argument("--skip_cvtcolor", action="store_true", default=False, help="skip cv2.cvtColor if upstream already BGR")
 
-#parser.add_argument("--camera_jpeg", action="store_true", default=True, help="enable JPEG compression for camera frames")
-#parser.add_argument("--camera_jpeg_quality", type=int, default=85, help="JPEG quality (1-100)")
 
 parser.add_argument("--physx_substeps", type=int, default=None, help="physx substeps per step")
-#parser.add_argument("--camera_include", type=str, default="front_camera,left_wrist_camera,right_wrist_camera", help="comma-separated camera names to enable")
-#parser.add_argument("--camera_exclude", type=str, default="world_camera", help="comma-separated camera names to disable")
 
-parser.add_argument("--env_reward_interval", type=int, default=5, help="environment reward compute interval (steps)")
 parser.add_argument("--seed", type=int, default=42, help="environment seed")
 
 
 # add AppLauncher parameters
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
-
-
-if args_cli.enable_dex3_dds and args_cli.enable_dex1_dds and args_cli.enable_inspire_dds:
-    print("Error: enable_dex3_dds and enable_dex1_dds and enable_inspire_dds cannot be enabled at the same time")
-    print("Please select one of the options")
-    sys.exit(1)
 
 
 import pinocchio                 
@@ -96,7 +87,6 @@ from isaaclab_tasks.utils.parse_cfg import parse_env_cfg
 
 from tools.augmentation_utils import (
     update_light,
-    #batch_augment_cameras_by_name,
 )
 
 from tools.data_json_load import sim_state_to_json
@@ -177,63 +167,23 @@ def main():
             print(f"[sim] failed to list sensors: {e}")
         print(f"\ncreate environment success ...")
         try:
-            env._reward_interval = max(1, int(args_cli.env_reward_interval))
+            env._reward_interval = 1
+            #env._reward_interval = max(1, int(args_cli.env_reward_interval))
             env._reward_counter = 0
             env._reward_last = None
             print(f"[env] reward compute interval set to {env._reward_interval} steps")
         except Exception as e:
             print(f"[env] failed to set reward interval: {e}")
-        if args_cli.physics_dt is not None:
-            try:
-                env.sim.set_substep_time(args_cli.physics_dt)
-                print(f"[sim] physics dt set to {args_cli.physics_dt}")
-            except Exception:
-                try:
-                    env.sim.dt = args_cli.physics_dt
-                    print(f"[sim] physics dt assigned to env.sim.dt={args_cli.physics_dt}")
-                except Exception as e:
-                    print(f"[sim] failed to set physics dt: {e}")
         headless_mode = bool(getattr(args_cli, "headless", False))
         render_interval = None
-        if args_cli.render_interval is not None:
-            try:
-                render_interval = max(1, int(args_cli.render_interval))
-            except Exception as e:
-                print(f"[sim] invalid render_interval value {args_cli.render_interval}: {e}")
         try:
-            if args_cli.no_render:
-                env.sim.render_interval = 1_000_000
-                env.sim.render_mode = "offscreen"
-                print("[sim] rendering disabled via --no_render")
-            elif headless_mode:
+            if headless_mode:
                 env.sim.render_mode = "offscreen"
                 env.sim.render_interval = render_interval or 1
                 print(f"[sim] headless offscreen rendering every {env.sim.render_interval} steps")
-            elif render_interval is not None:
-                env.sim.render_interval = render_interval
-                print(f"[sim] render_interval set to {env.sim.render_interval}")
         except Exception as e:
             print(f"[sim] failed to configure rendering: {e}")
 
-        try:
-            if args_cli.solver_iterations is not None:
-                env.sim.physx.solver_iteration_count = int(args_cli.solver_iterations)
-                print(f"[sim] solver_iteration_count={env.sim.physx.solver_iteration_count}")
-            if args_cli.physx_substeps is not None:
-                try:
-                    env.sim.physx.substeps = int(args_cli.physx_substeps)
-                except Exception:
-                    try:
-                        env.sim.set_substeps(int(args_cli.physx_substeps))
-                    except Exception:
-                        pass
-                print(f"[sim] physx_substeps set to {args_cli.physx_substeps}")
-            if args_cli.gravity_z is not None:
-                g = float(args_cli.gravity_z)
-                env.sim.physx.gravity = (0.0, 0.0, g)
-                print(f"[sim] gravity set to {env.sim.physx.gravity}")
-        except Exception as e:
-            print(f"[sim] failed to set physx params: {e}")
     except Exception as e:
         import traceback
         print(traceback.print_exc())
@@ -276,15 +226,6 @@ def main():
             enabled=True,
             cast_shadows=True
         )
-    #if args_cli.modify_camera:
-    #    batch_augment_cameras_by_name(
-    #        names=["front_cam"],
-    #        focal_length=3.0,
-    #        horizontal_aperture=22.0,
-    #        vertical_aperture=16.0,
-    #        exposure=0.8,                
-    #        focus_distance=1.2
-    #    )
     env.sim.reset()
     env.reset()
     
@@ -362,10 +303,6 @@ def main():
     else:
         setup_signal_handlers(controller)
     
-    #carb.settings.get_settings().set_string("/log/level", "Error")
-    #carb.settings.get_settings().set_string("/log/fileLogLevel", "Error")
-    #carb.settings.get_settings().set_string("/log/outputStreamLevel", "Error")
-
     simulation_app.app.get_extension_manager().add_path("/home/code/CL_isaaclab_sim/exts")
     simulation_app.app.get_extension_manager().refresh_registry()
     import isaacsim.core.utils.extensions as extensions_utils
@@ -403,7 +340,7 @@ def main():
         recent_loop_times = []  # for calculating moving average frequency
         
         
-        reward_interval = max(1, args_cli.reward_interval)
+        #reward_interval = max(1, args_cli.reward_interval)
 
         # use torch.inference_mode() and exception suppression
         with contextlib.suppress(KeyboardInterrupt), torch.inference_mode():
@@ -447,14 +384,6 @@ def main():
                     except Exception as e:
                         print(f"Failed to get reset pose command: {e}")
                         raise e
-                    # Compute current reward values manually if needed for debugging
-                    try:
-                        if (loop_count % reward_interval) == 0:
-                            pass
-                            # current_reward = get_step_reward_value(env)
-                    except Exception as e:
-                        print(f"奖励计算失败: {e}")
-                        pass
                     
                     if reset_pose_cmd is not None:
                         try:
@@ -470,11 +399,6 @@ def main():
                         except Exception as e:
                             print(f"Failed to write reset pose command: {e}")
                             raise e
-                    #for name in readers:
-                    #    try:
-                    #        writers[name].write(readers[name].read()[0])
-                    #    except Exception as e:
-                    #        pass
                 else:
                     if action_provider.get_start_loop() and data_idx<len(data_json_list):
                         print(f"data_idx: {data_idx}")
@@ -494,17 +418,13 @@ def main():
                         except Exception as e:
                             print(f"Failed to start replay: {e}")
                             raise e
-                # print(f"env_state: {env_state}")
-                # calculate instantaneous loop time
                 loop_dt = current_time - last_loop_time
                 last_loop_time = current_time
                 recent_loop_times.append(loop_dt)
                 
-                # keep recent 100 loop times
                 if len(recent_loop_times) > 100:
                     recent_loop_times.pop(0)
                 
-                # execute control step (in main thread, support rendering)
                 controller.step()
 
                 # print statistics and loop frequency periodically
@@ -525,20 +445,6 @@ def main():
                         moving_avg_frequency = 0
                         min_freq = max_freq = 0
                     
-                    #print(f"\n=== While loop execution frequency statistics ===")
-                    #print(f"loop execution count: {loop_count}")
-                    #print(f"running time: {elapsed_time:.2f} seconds")
-                    #print(f"overall average frequency: {loop_frequency:.2f} Hz")
-                    #print(f"moving average frequency: {moving_avg_frequency:.2f} Hz (last {len(recent_loop_times)} times)")
-                    #print(f"frequency range: {min_freq:.2f} - {max_freq:.2f} Hz")
-                    #print(f"average loop time: {(elapsed_time/loop_count*1000):.2f} ms")
-                    #if recent_loop_times:
-                    #    print(f"recent loop time: {(avg_loop_time*1000):.2f} ms")
-                    #print(f"=============================")
-                    #
-                    ## print_stats(controller)
-                    #last_stats_time = current_time
-       
                 # check environment state
                 if env.sim.is_stopped():
                     print("\nenvironment stopped")
@@ -559,12 +465,6 @@ def main():
         controller.cleanup()
         env.close()
         print("cleanup completed")
-    # profiler.disable()
-    # s = io.StringIO()
-    # ps = pstats.Stats(profiler, stream=s).strip_dirs().sort_stats("time")
-    # ps.print_stats(30)  
-
-    # print(s.getvalue())
 
 if __name__ == "__main__":
     try:

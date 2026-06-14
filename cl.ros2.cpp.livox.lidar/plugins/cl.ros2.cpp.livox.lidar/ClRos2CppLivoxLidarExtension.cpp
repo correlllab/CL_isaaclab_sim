@@ -53,17 +53,17 @@ namespace cl {
 
                   iDictionary->makeFloatAtPath(kwargs, "min_range", 0.4);
 
-                  iDictionary->makeFloatAtPath(kwargs, "max_range", 100.0);
+                  iDictionary->makeFloatAtPath(kwargs, "max_range", 40.0);
 
                   iDictionary->makeBoolAtPath(kwargs, "draw_points", false);
 
-                  iDictionary->makeBoolAtPath(kwargs, "draw_lines", true);
+                  iDictionary->makeBoolAtPath(kwargs, "draw_lines", false);
 
                   iDictionary->makeFloatAtPath(kwargs, "horizontal_fov", 360.0);
 
                   iDictionary->makeFloatAtPath(kwargs, "vertical_fov", 60.0);
 
-                  iDictionary->makeFloatAtPath(kwargs, "horizontal_resolution", 0.4);
+                  iDictionary->makeFloatAtPath(kwargs, "horizontal_resolution", 0.272);
 
                   iDictionary->makeFloatAtPath(kwargs, "vertical_resolution", 0.4);
 

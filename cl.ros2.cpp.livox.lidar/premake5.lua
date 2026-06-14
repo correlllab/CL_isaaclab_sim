@@ -33,14 +33,39 @@ project_ext_ogn( ext, ogn )
 -- --------------------------------------------------------------------------------------------------------------
 -- Build the C++ plugin that will be loaded by the extension.
 project_ext_plugin(ext, ogn.plugin_project)
-    -- It is important that you add all subdirectories containing C++ code to this project
+
     add_files("source", "plugins/"..ogn.module)
     add_files("nodes", "plugins/nodes")
+
     includedirs {
-      "/opt/conda/envs/unitree_sim_env/lib/python3.11/site-packages/isaacsim/exts/isaacsim.sensors.physx/include"
+        "/opt/conda/envs/unitree_sim_env/lib/python3.11/site-packages/isaacsim/exts/isaacsim.sensors.physx/include",
+        "/opt/conda/envs/unitree_sim_env/lib/python3.11/site-packages/isaacsim/exts/isaacsim.ros2.bridge/include",
+        "/opt/conda/envs/unitree_sim_env/lib/python3.11/site-packages/isaacsim/exts/isaacsim.core.includes/include",
+        "/opt/conda/include"
     }
 
-    -- Add the standard dependencies all OGN projects have; includes, libraries to link, and required compiler flags
     add_ogn_dependencies(ogn)
 
     cppdialect "C++17"
+
+--project_ext_plugin(ext, ogn.plugin_project)
+--    -- It is important that you add all subdirectories containing C++ code to this project
+--    add_files("source", "plugins/"..ogn.module)
+--    add_files("nodes", "plugins/nodes")
+--    includedirs {
+--      "/opt/conda/envs/unitree_sim_env/lib/python3.11/site-packages/isaacsim/exts/isaacsim.sensors.physx/include",
+--      "/opt/ros/humble/include"
+--
+--    }
+--    libdirs {
+--      "/opt/ros/humble/lib"
+--    }
+--
+--    links {
+--      "rosidl_runtime_c", "rcutils", "rcl", "rmw", "std_msgs__rosidl_typesupport_c", "std_msgs__rosidl_generator_c"
+--    }
+--
+--    -- Add the standard dependencies all OGN projects have; includes, libraries to link, and required compiler flags
+--    add_ogn_dependencies(ogn)
+--
+--    cppdialect "C++17"

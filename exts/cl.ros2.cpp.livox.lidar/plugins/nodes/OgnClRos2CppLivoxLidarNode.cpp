@@ -10,6 +10,7 @@
 #include <isaacsim/ros2/bridge/Ros2Factory.h>
 #include <isaacsim/ros2/bridge/Ros2Types.h>
 #include <isaacsim/ros2/bridge/Ros2QoS.h>
+#include <isaacsim/core/
 
 #include <OgnClRos2CppLivoxLidarNodeDatabase.h>
 
@@ -36,6 +37,8 @@ namespace cl {
             carb::tasking::TaskGroup mCarbTaskGroup;
             std::vector<carb::tasking::Future<>> mCarbTasks;
 
+            isaacsim::core::simulation_manager::ISimulationManager mIsaacSimInterface;
+
 
             const std::string mLidarPath = "/World/envs/env_0/Robot/lidar_link/livox_lidar";
             const std::string mQoSProfile = R"({
@@ -51,9 +54,6 @@ namespace cl {
 
             const std::string mLidarFrameId = "test_frame_id";
             
-            std::chrono::steady_clock mClock;
-            std::chrono::steady_clock::time_point mStartTime = mClock.now();
-
             bool running = true;
 
             public:
@@ -73,6 +73,8 @@ namespace cl {
 
                 mRos2PointCloudPublisher = mRos2Factory->createPublisher(mRos2NodeHandle.get(), "/test/test", mRos2PointCloudMsg->getTypeSupportHandle(), qos);
                 mCarbTaskingInterface = carb::getCachedInterface<carb::tasking::ITasking>();
+
+                mIsaacSimInterface = carb::getCachedInterface<isaacsim::core::simulation_manager::ISimulationManager>();
              
               }
               ~OgnClRos2CppLivoxLidarNode() {}
@@ -124,8 +126,7 @@ namespace cl {
                 int width = rows * cols;
                 int height = 1;
                 int totalBytes = pointStep * width;
-                auto now = state.mClock.now();
-                auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(now - state.mStartTime).count();
+                double timestamp = state.mIsaacSimInterface.getSimulationTimeMonotonic();
 
                 tmpMsg->generateBuffer(timestamp, state.mLidarFrameId, width, height, pointStep);
                 memcpy(tmpMsg->getBufferPtr(), reinterpret_cast<void*>(rawPointCloud.data()), totalBytes);
@@ -156,7 +157,9 @@ namespace cl {
 
               void test() {
                 while (running) {
-                  mRos2PointCloudPublisher.get()->publish(mRos2PointCloudMsg->getPtr());
+                  try {
+                    mRos2PointCloudPublisher.get()->publish(mRos2PointCloudMsg->getPtr());
+                  }
                 }
               }
 

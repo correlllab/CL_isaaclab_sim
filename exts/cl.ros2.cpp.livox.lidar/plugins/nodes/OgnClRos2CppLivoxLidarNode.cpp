@@ -1,16 +1,11 @@
-#include <chrono>
 #include <string>
-#include <memory>
-
-#include <carb/tasking/ITasking.h>
-#include <carb/tasking/TaskingUtils.h>
 
 #include <isaacsim/sensors/physx/IPhysxSensorInterface.h>
 #include <isaacsim/ros2/bridge/IRos2Bridge.h>
 #include <isaacsim/ros2/bridge/Ros2Factory.h>
 #include <isaacsim/ros2/bridge/Ros2Types.h>
 #include <isaacsim/ros2/bridge/Ros2QoS.h>
-#include <isaacsim/core/
+#include <isaacsim/core/simulation_manager/ISimulationManager.h>
 
 #include <OgnClRos2CppLivoxLidarNodeDatabase.h>
 
@@ -33,28 +28,27 @@ namespace cl {
 
             std::shared_ptr<isaacsim::ros2::bridge::Ros2PointCloudMessage> mRos2PointCloudMsg;
 
-            carb::tasking::ITasking* mCarbTaskingInterface;
-            carb::tasking::TaskGroup mCarbTaskGroup;
-            std::vector<carb::tasking::Future<>> mCarbTasks;
+            isaacsim::core::simulation_manager::ISimulationManager* mIsaacSimInterface;
 
-            isaacsim::core::simulation_manager::ISimulationManager mIsaacSimInterface;
+            std::shared_ptr<isaacsim::ros2::bridge::Ros2Publisher> mRos2StringPublisher;
 
+            std::shared_ptr<isaacsim::ros2::bridge::Ros2SemanticLabelMessage> mRos2StringMsg;
 
             const std::string mLidarPath = "/World/envs/env_0/Robot/lidar_link/livox_lidar";
             const std::string mQoSProfile = R"({
               "history": "keepLast",
               "depth": 10,
-              "reliability": "bestEffort",
+              "reliability": "reliable",
               "durability": "volatile",
               "deadline": 5.0,
               "lifespan": 10.0,
               "liveliness": "automatic",
               "leaseDuration": 9.0
             })";
+            //needs to be reliable for rviz2, seems to need to be bestEffort for ros2 topic hz?
 
             const std::string mLidarFrameId = "test_frame_id";
-            
-            bool running = true;
+            //bool running = true;
 
             public:
 
@@ -71,98 +65,42 @@ namespace cl {
                 isaacsim::ros2::bridge::Ros2QoSProfile qos;
                 isaacsim::ros2::bridge::jsonToRos2QoSProfile(qos, mQoSProfile);
 
-                mRos2PointCloudPublisher = mRos2Factory->createPublisher(mRos2NodeHandle.get(), "/test/test", mRos2PointCloudMsg->getTypeSupportHandle(), qos);
-                mCarbTaskingInterface = carb::getCachedInterface<carb::tasking::ITasking>();
+                mRos2PointCloudPublisher = mRos2Factory->createPublisher(mRos2NodeHandle.get(), "/test/pc", mRos2PointCloudMsg->getTypeSupportHandle(), qos);
 
                 mIsaacSimInterface = carb::getCachedInterface<isaacsim::core::simulation_manager::ISimulationManager>();
-             
+
               }
               ~OgnClRos2CppLivoxLidarNode() {}
 
               static void initInstance(NodeObj const& node, GraphInstanceID instanceId) {
 
                 OgnClRos2CppLivoxLidarNode& state = OgnClRos2CppLivoxLidarNodeDatabase::sPerInstanceState<OgnClRos2CppLivoxLidarNode>(node, instanceId);
-                state.initInternalState();
-              }
-
-              void initInternalState() {
-                if (mLidarInterface) {
-                  std::cout << "carb::getCachedInterface failed on lidar interface query" << "\n";
-                }
-                else {
-                  std::cout << "lidar interface succesfully retrieved from carb::getCachedInterface" << "\n";
-                }
-                if (mLidarInterface->isLidarSensor(mLidarPath.c_str())) {
-                  std::cout << "lidar sensor succesuflly detected at: " << mLidarPath.c_str() << "\n";
-                }
-                else {
-                  std::cout << "we should debug dump here" << "\n";
-                }
-
-                mCarbTasks.push_back(mCarbTaskingInterface->addTaskIn(std::chrono::seconds(3), carb::tasking::Priority::eDefault, {}, &OgnClRos2CppLivoxLidarNode::test, this));
 
               }
-
 
               static bool compute(OgnClRos2CppLivoxLidarNodeDatabase& db) {
 
                 OgnClRos2CppLivoxLidarNode& state = db.perInstanceState<OgnClRos2CppLivoxLidarNode>();
 
-                std::shared_ptr<isaacsim::ros2::bridge::Ros2PointCloudMessage> tmpMsg = state.mRos2Factory->createPointCloudMessage();
-
                 carb::Float3* carbPointCloud = state.mLidarInterface->getPointCloud(state.mLidarPath.c_str());
                 int rows = state.mLidarInterface->getNumRows(state.mLidarPath.c_str());
                 int cols = state.mLidarInterface->getNumCols(state.mLidarPath.c_str());
-                std::vector<uint8_t> rawPointCloud;
-
-                for (int i = 0; i < (rows * cols); i++) {
-                  rawPointCloud.push_back(carbPointCloud[i].x);
-                  rawPointCloud.push_back(carbPointCloud[i].y);
-                  rawPointCloud.push_back(carbPointCloud[i].z);
-                }
-
-                std::cout << rawPointCloud.size() << "\n";
-                int pointStep = sizeof(carb::Float3);
                 int width = rows * cols;
+                int totalBytes = width * sizeof(carb::Float3);
+
+                int pointStep = sizeof(carb::Float3);
                 int height = 1;
-                int totalBytes = pointStep * width;
-                double timestamp = state.mIsaacSimInterface.getSimulationTimeMonotonic();
-
-                tmpMsg->generateBuffer(timestamp, state.mLidarFrameId, width, height, pointStep);
-                memcpy(tmpMsg->getBufferPtr(), reinterpret_cast<void*>(rawPointCloud.data()), totalBytes);
-                std::cout << "_____Writer Thread__________________" << "\n";
-                std::cout << "Rows: " << rows << "\n";
-                std::cout << "Cols: " << cols << "\n";
-                std::cout << "width: " << width << "\n";
-                std::cout << "totalBytes: " << totalBytes << "\n";
-                std::cout << "timestamp: " << timestamp << "\n";
-                std::cout << "_______________________" << "\n";
-
-                state.mRos2PointCloudMsg = tmpMsg;
+                double timestamp = state.mIsaacSimInterface->getSimulationTimeMonotonic();
+                //not sure if ros2 requires it to be monotonic
+                state.mRos2PointCloudMsg->generateBuffer(timestamp, state.mLidarFrameId, width, 1, sizeof(carb::Float3));
+                memcpy(state.mRos2PointCloudMsg->getBufferPtr(), reinterpret_cast<void*>(carbPointCloud), totalBytes);
+                state.mRos2PointCloudPublisher.get()->publish(state.mRos2PointCloudMsg->getPtr());
                 return true;
               }
 
               static void releaseInstance(NodeObj const& node, GraphInstanceID instanceId) {
                 OgnClRos2CppLivoxLidarNode& state = OgnClRos2CppLivoxLidarNodeDatabase::sPerInstanceState<OgnClRos2CppLivoxLidarNode>(node, instanceId);
-
-                state.running = false;
-                for (auto& task : state.mCarbTasks) {
-                  if (!state.mCarbTaskingInterface->tryCancelTask(*task.task_if())) {
-                    task.wait();
-                  }
-                
-                }
-                state.mCarbTasks.clear();
               }
-
-              void test() {
-                while (running) {
-                  try {
-                    mRos2PointCloudPublisher.get()->publish(mRos2PointCloudMsg->getPtr());
-                  }
-                }
-              }
-
             };
 
           REGISTER_OGN_NODE()

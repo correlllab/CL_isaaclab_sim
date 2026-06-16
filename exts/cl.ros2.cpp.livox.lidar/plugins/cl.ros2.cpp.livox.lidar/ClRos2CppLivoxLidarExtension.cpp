@@ -77,10 +77,6 @@ namespace cl {
 
                   auto smallBegin = std::chrono::high_resolution_clock::now();
 
-                  //auto f = std::async(
-                  //  static_cast<bool (omni::kit::commands::ICommandBridge::*)(const char*, const carb::dictionary::Item*) const>(&omni::kit::commands::ICommandBridge::executeCommand), commandBridge, "RangeSensorCreateLidar", kwargs);
-//
-                  //calling command execution async blocks, i think it must be done on main extension thread
                   commandBridge->executeCommand("RangeSensorCreateLidar", kwargs);
                   
                   auto smallEnd = std::chrono::high_resolution_clock::now();
@@ -115,4 +111,3 @@ CARB_PLUGIN_IMPL(pluginImplDesc, cl::ros2::cpp::livox::lidar::ClRos2CppLivoxLida
 
 
 void fillInterface(cl::ros2::cpp::livox::lidar::ClRos2CppLivoxLidarExtension& iface) {}
-

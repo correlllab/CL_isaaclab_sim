@@ -41,7 +41,8 @@ project_ext_plugin(ext, ogn.plugin_project)
         "/opt/conda/envs/unitree_sim_env/lib/python3.11/site-packages/isaacsim/exts/isaacsim.sensors.physx/include",
         "/opt/conda/envs/unitree_sim_env/lib/python3.11/site-packages/isaacsim/exts/isaacsim.ros2.bridge/include",
         "/opt/conda/envs/unitree_sim_env/lib/python3.11/site-packages/isaacsim/exts/isaacsim.core.includes/include",
-        "/opt/conda/include"
+        "/opt/conda/include",
+        "/opt/conda/envs/unitree_sim_env/lib/python3.11/site-packages/isaacsim/exts/isaacsim.core.simulation_manager/include"
     }
     libdirs {
       "/opt/conda/envs/unitree_sim_env/lib/python3.11/site-packages/isaacsim/exts/isaacsim.ros2.bridge/humble/lib"

@@ -67,12 +67,12 @@ class OgnClRos2LivoxPyInternalState(BaseResetNode):
             path="/livox_lidar",
             parent="/World/envs/env_0/Robot/lidar_link",
             min_range=0.4,
-            max_range=100.0,
-            draw_points=True,
+            max_range=40.0,
+            draw_points=False,
             draw_lines=False,
             horizontal_fov=360.0,
             vertical_fov=60.0,
-            horizontal_resolution=0.4,
+            horizontal_resolution=0.272,
             vertical_resolution=0.4,
             rotation_rate=0.0,
             high_lod=True,
@@ -261,7 +261,7 @@ class OgnClRos2LivoxPy:
         #    return False
 
         try:
-            run_coroutine(state.publish_livox_imu_data(db.inputs.quat_w, db.inputs.pos_w, db.inputs.lin_vel_b, db.inputs.lin_acc_b, db.inputs.ang_vel_b, db.inputs.ang_acc_b))
+            #run_coroutine(state.publish_livox_imu_data(db.inputs.quat_w, db.inputs.pos_w, db.inputs.lin_vel_b, db.inputs.lin_acc_b, db.inputs.ang_vel_b, db.inputs.ang_acc_b))
             run_coroutine(state.publish_livox_lidar_data())
         except Exception as e:
             breakpoint()

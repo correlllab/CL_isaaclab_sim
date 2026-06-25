@@ -44,6 +44,10 @@ class OgnClRos2RealsensePyInternalState(BaseResetNode):
             for cam_name in camera_config['cameras']:
                 #if not stage.GetPrimAtPath(camera_config['cameras'][cam_name]['path']).IsA(UsdGeom.Camera):
                 prim = UsdGeom.Xform.Define(stage, camera_config['cameras'][cam_name]['path'])
+                try:
+                    prim.AddTranslateOp().Set(value=(10, 10, 10))
+                except Exception as e:
+                    pass
                 UsdGeom.Camera.Define(stage, camera_config['cameras'][cam_name]['path'])
                 if "rgb" in cam_name:
                     cam = Camera(prim_path=camera_config['cameras'][cam_name]['path'], name=cam_name, resolution=(1280, 720))

@@ -61,6 +61,7 @@ class ThreadPool {
     std::queue<std::function<void()>> m_tasks; 
     std::mutex m_queueMutex;
     std::condition_variable m_cv;
+    bool m_stop = false;
 
 };
 

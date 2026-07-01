@@ -24,15 +24,19 @@ set(CUDA_INCLUDE
   ${ISAAC_SIM_ROOT}/kit/python/lib/python3.11/site-packages/nvidia/nvjpeg/include
 )
 
+set(CORRELL_COMMON_INCLUDE
+  /workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-common/include
+)
+
 add_library(${PROJECT_NAME} SHARED
-  src/nvjpeg_encoder.cpp
-  src/thread_pool.cpp
-  src/ros2_nvjpeg_compressed_image_publisher.cpp
+  src/NvjpegEncoder.cpp
+  src/Ros2NvjpegTransport.cpp
 )
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC   
     include
+    ${CORRELL_COMMON_INCLUDE}
     ${Python3_INCLUDE_DIRS}
     ${CUDA_INCLUDE}
     /isaac-sim/kit/python/lib/python3.11/site-packages/nvidia/cu13/include
@@ -70,16 +74,16 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 
 #for debugging, omitted just to be lightweight
-#pybind11_add_module(nvjpeg_encoder_py
-#    src/nvjpeg_encoder.cpp
-#)
+pybind11_add_module(nvjpeg_encoder_py
+  src/NvjpegEncoder.cpp
+)
 
-#target_link_libraries(nvjpeg_encoder_py PRIVATE
-#    correll.ros2.nvjpeg.transport
-#)
+target_link_libraries(nvjpeg_encoder_py PRIVATE
+    correll-ros2-nvjpeg-transport
+)
 
 pybind11_add_module(ros2_nvjpeg_compressed_image_publisher_py
-    src/ros2_nvjpeg_compressed_image_publisher.cpp
+    src/Ros2NvjpegTransport.cpp
 )
 
 target_link_libraries(ros2_nvjpeg_compressed_image_publisher_py PRIVATE

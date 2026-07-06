@@ -47,15 +47,14 @@ public:
         auto elem = std::move(_collection.back());
         _collection.pop_back();
 
-        std::cout << "just popped: {";
+        //std::cout << "just popped: {";
 
-        for (const auto& numb : _collection) {
-          std::cout << numb << ", ";
-        }
-        std::cout << "}" << "\n";
+        //for (const auto& numb : _collection) {
+        //  //std::cout << numb << ", ";
+        //}
+        //std::cout << "}" << "\n";
         return elem;
     }
-
 
 
 private:

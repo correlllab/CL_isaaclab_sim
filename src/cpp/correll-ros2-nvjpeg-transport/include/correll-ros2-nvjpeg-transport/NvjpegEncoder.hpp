@@ -7,22 +7,32 @@
 
 #include <pybind11/stl.h>
 
-class nvjpegEncoder {
+enum class StreamType {DEPTH, RGB};
+
+class NvjpegEncoder {
 
   public:
-    nvjpegEncoder(std::vector<std::string> topicNames);
+    nvjpegEncoder(StreamType type, std::vector<std::string> names);
     ~nvjpegEncoder();
 
-    void encodeImageBuffer(long dataPtr, int width, int height, std::string topicName, std::vector<unsigned char>& jpegBuffer);
+    void encodeImageBuffer(Image img, std::string topic, std::vector<unsigned char>& jpegBuffer);
+
+    std::unordered_map<std::string, nvjpegEncoderState_t> mStates;
+
+    nvjpegHandle_t mNvHandle;
+    nvjpegEncoderParams_t mNvEncParams;
+    cudaStream_t mCuda = NULL;
+    //cant be nullptr bc of aliasing
+    
 
 
-    std::unordered_map<std::string, nvjpegEncoderState_t> m_stateMap;
-    nvjpegHandle_t m_nvHandle;
-    nvjpegEncoderState_t m_nvEncState;
-    nvjpegEncoderParams_t m_nvEncParams;
-    cudaStream_t m_cudaStream = NULL;
-    nvjpegImage_t m_nvImage;
-    nvjpegStatus_t m_latestCudaError;
-    std::vector<std::string> m_topicNames;
+    //std::unordered_map<std::string, nvjpegEncoderState_t> m_stateMap;
+    //nvjpegHandle_t m_nvHandle;
+    //nvjpegEncoderState_t m_nvEncState;
+    //nvjpegEncoderParams_t m_nvEncParams;
+    //cudaStream_t m_cudaStream = NULL;
+    //nvjpegImage_t m_nvImage;
+    //nvjpegStatus_t m_latestCudaError;
+    //std::vector<std::string> m_topicNames;
 
 };

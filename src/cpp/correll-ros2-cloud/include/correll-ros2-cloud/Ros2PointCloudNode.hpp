@@ -8,6 +8,8 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/msg/point_field.hpp>
 
+#include <cuda_runtime.h>
+
 struct PointCloudData {
   long dataPtr, numElements;
 };
@@ -42,13 +44,15 @@ class Ros2PointCloudNode : public rclcpp::Node {
 
   public:
 
-    Ros2PointCloudNode(std::string topic);
+    Ros2PointCloudNode(std::vector<std::string> topics);
 
-    uint8_t PushDataToDeque(long dataPtr, long numElements);
+    uint8_t PushDataToDeque(long dataPtr, long numElements, std::string topic);
   private:
 
-    void ReaderThread();
-    PointCloudDeque mDeque;
+    void ReaderThread(std::string topic);
+
+    std::unordered_map<std::string, std::unique_ptr<PointCloudDeque>> mDequeMap;
+    std::unordered_map<std::string, rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr> mPublisherMap;
     ThreadPool mPool{2};
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr mPointCloudPublisher;
 

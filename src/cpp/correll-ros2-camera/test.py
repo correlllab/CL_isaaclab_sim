@@ -12,23 +12,20 @@ rgb_img_tensor = transform(image_rgb)
 depth_img_tensor = transform(image_depth)
 rgb_img_tensor = rgb_img_tensor.reshape(3000, 2000,3).to("cuda")
 depth_img_tensor = depth_img_tensor.reshape(3000, 2000, 1).to("cuda")
-import nvjpeg_encoder_py
-nvjpeg_encoder_py.nvjpeg_encoder()
+#import nvjpeg_encoder_py
+#nvjpeg_encoder_py.nvjpeg_encoder()
 import ros2_camera_node_py
 
 ros2_camera_node_py.spin_rclcpp()
-node = ros2_camera_node_py.ros2_camera_node(["depth", "color"])
+node = ros2_camera_node_py.ros2_camera_node(["/realsense/left_hand/color/image_raw/compressed", "/realsense/left_hand/aligned_depth_to_color/image_raw/compressed"])
 
 import time
 
 while True:
-    node.push_data_to_deque(rgb_img_tensor.data_ptr(), rgb_img_tensor.shape[0], rgb_img_tensor.shape[1], "color")
-    time.sleep(1)
-    breakpoint()
-    node.push_data_to_deque(depth_img_tensor.data_ptr(), depth_img_tensor.shape[0], depth_img_tensor.shape[1], "depth")
+    node.push_data_to_deque(rgb_img_tensor.data_ptr(), rgb_img_tensor.shape[0], rgb_img_tensor.shape[1], "/realsense/left_hand/color/image_raw/compressed")
+    node.push_data_to_deque(depth_img_tensor.data_ptr(), depth_img_tensor.shape[0], depth_img_tensor.shape[1], "/realsense/left_hand/aligned_depth_to_color/image_raw/compressed")
 
     time.sleep(1)
-    breakpoint()
     pass
 
 #import ros2_nvjpeg_compressed_image_publisher_py

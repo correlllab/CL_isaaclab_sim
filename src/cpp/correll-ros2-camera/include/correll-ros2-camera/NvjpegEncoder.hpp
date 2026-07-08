@@ -21,7 +21,7 @@ class NvjpegEncoder {
     NvjpegEncoder(DataType dtype);
     ~NvjpegEncoder();
 
-    uint8_t Encode(ImageData data);
+    std::vector<unsigned char> Encode(ImageData data);
 
   private:
     DataType mInternalDataType;

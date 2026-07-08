@@ -23,11 +23,6 @@ Ros2CameraNode::Ros2CameraNode(std::vector<std::string> topics) :rclcpp::Node("c
     mPool.enqueue(std::bind(&Ros2CameraNode::ReaderThread, this, topic));
   }
 
-
-  //mCompressedImagePublisher = this->create_publisher<sensor_msgs::msg::CompressedImage>("a", 10);
-
-  //mPool.enqueue(std::bind(&Ros2CameraNode::ReaderThread, this, "test"));
-
 }
 
 void Ros2CameraNode::PushDataToDeque(long dataPtr, int width, int height, std::string topic) {
@@ -42,7 +37,20 @@ void Ros2CameraNode::ReaderThread(std::string topic) {
   while (true) {
 
     ImageData latest = mDequeMap[topic]->PopBack();
-    mEncoderMap[topic]->Encode(latest);
+    std::vector<unsigned char> buffer = mEncoderMap[topic]->Encode(latest);
+    std_msgs::msg::Header header;
+    sensor_msgs::msg::CompressedImage msg;
+
+    header.stamp = this->now();
+    header.frame_id = "test";
+
+    msg.header = header;
+    msg.format = "jpeg";
+    msg.data = buffer;
+    std::cout << "msg data size: " << msg.data.size() << "\n";
+
+    mPublisherMap[topic]->publish(msg);
+
     mDequeMap[topic]->SemaphoreAcquire(); 
 
     std::cout << topic << ": semaphore - 1" << "\n";

@@ -28,7 +28,7 @@ NvjpegEncoder::~NvjpegEncoder() {
 
 }
 
-uint8_t NvjpegEncoder::Encode(ImageData data) {
+std::vector<unsigned char> NvjpegEncoder::Encode(ImageData data) {
   std::cout << "encoding!" << "\n";
   std::cout << data.dataPtr << "\n";
   std::cout << data.width << "\n";
@@ -67,7 +67,7 @@ uint8_t NvjpegEncoder::Encode(ImageData data) {
   output_file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size());
   output_file.close();
   
-  return 0;
+  return buffer;
 
 }
 

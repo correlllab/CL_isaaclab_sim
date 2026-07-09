@@ -4,7 +4,6 @@
 #include <correll-ros2-camera/Ros2CameraNode.hpp>
 
 Ros2CameraNode::Ros2CameraNode(std::vector<std::string> topics) :rclcpp::Node("correllRos2CameraNode") {
-  std::cout << "hi2" << "\n";
 
   for (auto& topic : topics) {
 
@@ -25,11 +24,15 @@ Ros2CameraNode::Ros2CameraNode(std::vector<std::string> topics) :rclcpp::Node("c
 
 }
 
-void Ros2CameraNode::PushDataToDeque(long dataPtr, int width, int height, std::string topic) {
-  ImageData data{dataPtr, width, height};
+void Ros2CameraNode::PushDataToDeque(long dataPtr, int width, int height, std::string topic, std::string structure) {
+  ImageData data{dataPtr, width, height, Structure::PLANAR};
+  if (structure == "INTERLEAVED") {
+    data.structure = Structure::INTERLEAVED;
+  
+  }
+
   mDequeMap[topic]->EmplaceFront(data);
   mDequeMap[topic]->SemaphoreRelease();
-  std::cout << topic << ": semaphore + 1" << "\n";
 
 }
 
@@ -47,13 +50,11 @@ void Ros2CameraNode::ReaderThread(std::string topic) {
     msg.header = header;
     msg.format = "jpeg";
     msg.data = buffer;
-    std::cout << "msg data size: " << msg.data.size() << "\n";
 
     mPublisherMap[topic]->publish(msg);
 
     mDequeMap[topic]->SemaphoreAcquire(); 
 
-    std::cout << topic << ": semaphore - 1" << "\n";
   }
 
 }

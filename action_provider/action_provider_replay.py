@@ -18,6 +18,8 @@ class FileActionProviderReplay(ActionProvider):
         super().__init__("FileActionProviderReplay")
         self.env = env
         self.enable_robot = args_cli.robot_type
+        self.enable_gripper = args_cli.enable_dex1_dds
+        self.enable_dex3 = args_cli.enable_dex3_dds
         self.enable_inspire = args_cli.enable_inspire_dds
         self.generate_data = args_cli.generate_data
         self.generate_data_dir = args_cli.generate_data_dir
@@ -107,6 +109,51 @@ class FileActionProviderReplay(ActionProvider):
             self.left_arm_joint_indices = [self.joint_to_index[name] for name in self.left_arm_joint]
             self.right_arm_joint_indices = [self.joint_to_index[name] for name in self.right_arm_joint]
             
+        if self.enable_gripper:
+            self.gripper_joint_mapping = {
+                "left_hand_Joint1_1": 1,
+                "left_hand_Joint2_1": 1,
+                "right_hand_Joint1_1": 0,
+                "right_hand_Joint2_1": 0,
+            }
+            self.left_hand_joint = ["left_hand_Joint1_1"]
+            self.right_hand_joint = ["right_hand_Joint1_1"]
+        if self.enable_dex3:
+            self.left_hand_joint_mapping = {
+                "left_hand_thumb_0_joint":0,
+                "left_hand_thumb_1_joint":1,
+                "left_hand_thumb_2_joint":2,
+                "left_hand_middle_0_joint":3,
+                "left_hand_middle_1_joint":4,
+                "left_hand_index_0_joint":5,
+                "left_hand_index_1_joint":6}
+            self.right_hand_joint_mapping = {
+                "right_hand_thumb_0_joint":0,     
+                "right_hand_thumb_1_joint":1,
+                "right_hand_thumb_2_joint":2,
+                "right_hand_middle_0_joint":3,
+                "right_hand_middle_1_joint":4,
+                "right_hand_index_0_joint":5,
+                "right_hand_index_1_joint":6}
+            self.left_hand_joint = [
+                # hand joints (14)
+                # left hand (7)
+                "left_hand_thumb_0_joint",
+                "left_hand_thumb_1_joint",
+                "left_hand_thumb_2_joint",
+                "left_hand_middle_0_joint",
+                "left_hand_middle_1_joint",
+                "left_hand_index_0_joint",
+                "left_hand_index_1_joint"]
+            self.right_hand_joint = [
+                    "right_hand_thumb_0_joint",
+                    "right_hand_thumb_1_joint",
+                    "right_hand_thumb_2_joint",
+                    "right_hand_middle_0_joint",
+                    "right_hand_middle_1_joint",
+                    "right_hand_index_0_joint",
+                    "right_hand_index_1_joint",
+                ]
         if self.enable_inspire:
             self.left_hand_joint = [
                 "L_pinky_proximal_joint",
@@ -137,7 +184,14 @@ class FileActionProviderReplay(ActionProvider):
                 if self.enable_robot == "g129" or self.enable_robot == "h1_2":
                     arm_cmd_data = self.robot_action[self.action_index]
      
-                if self.enable_inspire:
+                # Get gripper command
+                if self.enable_gripper:
+                    hand_cmd_data = self.hand_action[self.action_index]
+
+                # Get hand command
+                elif self.enable_dex3:
+                    hand_cmd_data = self.hand_action[self.action_index]
+                elif self.enable_inspire:
                     hand_cmd_data = self.hand_action[self.action_index]
                 
                 env.scene.reset_to(self.sim_state_list[self.action_index], torch.tensor([0], device=env.device), is_relative=True)
@@ -186,8 +240,12 @@ class FileActionProviderReplay(ActionProvider):
         joint_pos = env.scene["robot"].data.joint_pos
         left_arm_joint_pose = joint_pos[:,self.left_arm_joint_indices][0].detach().cpu().numpy().tolist()
         right_arm_joint_pose = joint_pos[:,self.right_arm_joint_indices][0].detach().cpu().numpy().tolist()
-        left_hand_joint_pose = joint_pos[:,self.left_hand_joint_indices][0].detach().cpu().numpy().tolist()
-        right_hand_joint_pose = joint_pos[:,self.right_hand_joint_indices][0].detach().cpu().numpy().tolist()
+        if self.enable_gripper:
+            left_hand_joint_pose = np.array(convert_to_gripper_range(joint_pos[:,self.left_hand_joint_indices][0].detach().cpu().numpy())).tolist()
+            right_hand_joint_pose = np.array(convert_to_gripper_range(joint_pos[:,self.right_hand_joint_indices][0].detach().cpu().numpy())).tolist()
+        else:
+            left_hand_joint_pose = joint_pos[:,self.left_hand_joint_indices][0].detach().cpu().numpy().tolist()
+            right_hand_joint_pose = joint_pos[:,self.right_hand_joint_indices][0].detach().cpu().numpy().tolist()
 
 
         return left_arm_joint_pose,right_arm_joint_pose,left_hand_joint_pose,right_hand_joint_pose
@@ -231,7 +289,13 @@ class FileActionProviderReplay(ActionProvider):
         depths = {}
         left_arm_action = arm_action[:7].tolist()
         right_arm_action = arm_action[7:].tolist()
-        if self.enable_inspire:
+        if self.enable_gripper:
+            right_hand_action = np.array(hand_action[:1]).tolist() 
+            left_hand_action = np.array(hand_action[1:]).tolist()
+        elif self.enable_dex3:
+            right_hand_action = hand_action[:7].tolist()
+            left_hand_action = hand_action[7:].tolist()
+        elif self.enable_inspire:
             right_hand_action = hand_action[:6].tolist()
             left_hand_action = hand_action[6:].tolist()
         colors[f"color_{0}"] = images["head"]

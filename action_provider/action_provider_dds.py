@@ -10,10 +10,14 @@ class DDSActionProvider(ActionProvider):
     def __init__(self,env, args_cli):
         super().__init__("DDSActionProvider")
         self.enable_robot = args_cli.robot_type
+        self.enable_gripper = args_cli.enable_dex1_dds
+        self.enable_dex3 = args_cli.enable_dex3_dds
         self.enable_inspire = args_cli.enable_inspire_dds
         self.env = env
         # Initialize DDS communication
         self.robot_dds = None
+        self.gripper_dds = None
+        self.dex3_dds = None
         self.inspire_dds = None
         self._setup_dds()
         self._setup_joint_mapping()
@@ -21,10 +25,16 @@ class DDSActionProvider(ActionProvider):
     def _setup_dds(self):
         """Setup DDS communication"""
         print(f"enable_robot: {self.enable_robot}")
+        print(f"enable_gripper: {self.enable_gripper}")
+        print(f"enable_dex3: {self.enable_dex3}")
         try:
             if self.enable_robot == "g129" or self.enable_robot == "h1_2":
                 self.robot_dds = dds_manager.get_object("g129")
-            if self.enable_inspire:
+            if self.enable_gripper:
+                self.gripper_dds = dds_manager.get_object("dex1")
+            elif self.enable_dex3:
+                self.dex3_dds = dds_manager.get_object("dex3")
+            elif self.enable_inspire:
                 self.inspire_dds = dds_manager.get_object("inspire")
             print(f"[{self.name}] DDS communication initialized")
         except Exception as e:
@@ -79,6 +89,30 @@ class DDSActionProvider(ActionProvider):
             self.arm_action_pose_indices = [self.arm_joint_mapping[name] for name in self.arm_joint_mapping.keys()]
             self._arm_target_indices = [self.joint_to_index[name] for name in self.arm_joint_mapping.keys()]
             self._arm_source_indices = [idx + 13 for idx in self.arm_joint_mapping.values()]  # source data from positions[13:]
+        if self.enable_gripper:
+            self.gripper_joint_mapping = {
+                "left_hand_Joint1_1": 1,
+                "left_hand_Joint2_1": 1,
+                "right_hand_Joint1_1": 0,
+                "right_hand_Joint2_1": 0,
+            }
+        if self.enable_dex3:
+            self.left_hand_joint_mapping = {
+                "left_hand_thumb_0_joint":0,
+                "left_hand_thumb_1_joint":1,
+                "left_hand_thumb_2_joint":2,
+                "left_hand_middle_0_joint":3,
+                "left_hand_middle_1_joint":4,
+                "left_hand_index_0_joint":5,
+                "left_hand_index_1_joint":6}
+            self.right_hand_joint_mapping = {
+                "right_hand_thumb_0_joint":0,     
+                "right_hand_thumb_1_joint":1,
+                "right_hand_thumb_2_joint":2,
+                "right_hand_middle_0_joint":3,
+                "right_hand_middle_1_joint":4,
+                "right_hand_index_0_joint":5,
+                "right_hand_index_1_joint":6}
         if self.enable_inspire:
             self.inspire_hand_joint_mapping = {
                 "R_pinky_proximal_joint":0,
@@ -113,6 +147,14 @@ class DDSActionProvider(ActionProvider):
         
         # precompute indices (for vectorization)
 
+        if self.enable_gripper:
+            self._gripper_target_indices = [self.joint_to_index[name] for name in self.gripper_joint_mapping.keys()]
+            self._gripper_source_indices = [idx for idx in self.gripper_joint_mapping.values()]
+        if self.enable_dex3:
+            self._left_hand_target_indices = [self.joint_to_index[name] for name in self.left_hand_joint_mapping.keys()]
+            self._left_hand_source_indices = [idx for idx in self.left_hand_joint_mapping.values()]
+            self._right_hand_target_indices = [self.joint_to_index[name] for name in self.right_hand_joint_mapping.keys()]
+            self._right_hand_source_indices = [idx for idx in self.right_hand_joint_mapping.values()]
         if self.enable_inspire:
             self._inspire_target_indices = [self.joint_to_index[name] for name in self.inspire_hand_joint_mapping.keys()]
             self._inspire_source_indices = [idx for idx in self.inspire_hand_joint_mapping.values()]
@@ -123,6 +165,14 @@ class DDSActionProvider(ActionProvider):
         device = self.env.device
         self._arm_target_idx_t = torch.tensor(self._arm_target_indices, dtype=torch.long, device=device)
         self._arm_source_idx_t = torch.tensor(self._arm_source_indices, dtype=torch.long, device=device)
+        if self.enable_gripper:
+            self._gripper_target_idx_t = torch.tensor(self._gripper_target_indices, dtype=torch.long, device=device)
+            self._gripper_source_idx_t = torch.tensor(self._gripper_source_indices, dtype=torch.long, device=device)
+        if self.enable_dex3:
+            self._left_hand_target_idx_t = torch.tensor(self._left_hand_target_indices, dtype=torch.long, device=device)
+            self._left_hand_source_idx_t = torch.tensor(self._left_hand_source_indices, dtype=torch.long, device=device)
+            self._right_hand_target_idx_t = torch.tensor(self._right_hand_target_indices, dtype=torch.long, device=device)
+            self._right_hand_source_idx_t = torch.tensor(self._right_hand_source_indices, dtype=torch.long, device=device)
         if self.enable_inspire:
             self._inspire_target_idx_t = torch.tensor(self._inspire_target_indices, dtype=torch.long, device=device)
             self._inspire_source_idx_t = torch.tensor(self._inspire_source_indices, dtype=torch.long, device=device)
@@ -132,6 +182,11 @@ class DDSActionProvider(ActionProvider):
         
         self._full_action_buf = torch.zeros(len(self.all_joint_names), device=device, dtype=torch.float32)
         self._positions_buf = torch.empty(29, device=device, dtype=torch.float32)
+        if self.enable_gripper:
+            self._gripper_buf = torch.empty(2, device=device, dtype=torch.float32)
+        if self.enable_dex3:
+            self._left_hand_buf = torch.empty(len(self._left_hand_source_indices), device=device, dtype=torch.float32)
+            self._right_hand_buf = torch.empty(len(self._right_hand_source_indices), device=device, dtype=torch.float32)
         if self.enable_inspire:
             self._inspire_buf = torch.empty(12, device=device, dtype=torch.float32)
     
@@ -157,7 +212,36 @@ class DDSActionProvider(ActionProvider):
                         self._positions_buf[:29].copy_(torch.tensor(positions[:29], dtype=torch.float32, device=self.env.device))
                         arm_vals = self._positions_buf.index_select(0, self._arm_source_idx_t)
                         full_action.index_copy_(0, self._arm_target_idx_t, arm_vals)
-            if self.inspire_dds:
+            # Get gripper command
+            if self.gripper_dds:
+                gripper_cmd = self.gripper_dds.get_gripper_command()
+                if gripper_cmd:
+                    left_gripper_cmd = gripper_cmd.get('left_gripper_cmd', {})
+                    right_gripper_cmd = gripper_cmd.get('right_gripper_cmd', {})
+                    left_gripper_positions = left_gripper_cmd.get('positions', [])
+                    right_gripper_positions = right_gripper_cmd.get('positions', [])
+                    gripper_positions = right_gripper_positions + left_gripper_positions
+                    if len(gripper_positions) >= 2:
+                        self._gripper_buf.copy_(torch.tensor(gripper_positions[:2], dtype=torch.float32, device=self.env.device))
+                        gp_vals = self._gripper_buf.index_select(0, self._gripper_source_idx_t)
+                        full_action.index_copy_(0, self._gripper_target_idx_t, gp_vals)
+             
+            elif self.dex3_dds:
+                hand_cmds = self.dex3_dds.get_hand_commands()
+                if hand_cmds:
+                    left_hand_cmd = hand_cmds.get('left_hand_cmd', {})
+                    right_hand_cmd = hand_cmds.get('right_hand_cmd', {})
+                    if left_hand_cmd and right_hand_cmd:
+                        left_positions = left_hand_cmd.get('positions', [])
+                        right_positions = right_hand_cmd.get('positions', [])
+                        if len(left_positions) >= len(self._left_hand_buf) and len(right_positions) >= len(self._right_hand_buf):
+                            self._left_hand_buf.copy_(torch.tensor(left_positions[:len(self._left_hand_buf)], dtype=torch.float32, device=self.env.device))
+                            self._right_hand_buf.copy_(torch.tensor(right_positions[:len(self._right_hand_buf)], dtype=torch.float32, device=self.env.device))
+                            l_vals = self._left_hand_buf.index_select(0, self._left_hand_source_idx_t)
+                            r_vals = self._right_hand_buf.index_select(0, self._right_hand_source_idx_t)
+                            full_action.index_copy_(0, self._left_hand_target_idx_t, l_vals)
+                            full_action.index_copy_(0, self._right_hand_target_idx_t, r_vals)
+            elif self.inspire_dds:
                 inspire_cmds = self.inspire_dds.get_inspire_hand_command()
                 if inspire_cmds and 'positions' in inspire_cmds:
                         inspire_cmds_positions = inspire_cmds['positions']
@@ -185,10 +269,10 @@ class DDSActionProvider(ActionProvider):
         try:
             if self.robot_dds:
                 self.robot_dds.stop_communication()
-            #if self.gripper_dds:
-            #    self.gripper_dds.stop_communication()
-            #if self.dex3_dds:
-            #    self.dex3_dds.stop_communication()
+            if self.gripper_dds:
+                self.gripper_dds.stop_communication()
+            if self.dex3_dds:
+                self.dex3_dds.stop_communication()
             if self.inspire_dds:
                 self.inspire_dds.stop_communication()
         except Exception as e:

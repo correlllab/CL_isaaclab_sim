@@ -16,7 +16,7 @@ set(PYBIND11_PYTHON_VERSION "3.11")
 file(GLOB_RECURSE ROS2_HEADERS /opt/ros/jazzy/include//*.h*)
 
 set(CORRELL_COMMON_INCLUDE
-  /workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-common/include
+  /workspace/isaaclab/mateo_ws/unitree_sim_isaaclab/src/cpp/correll-common/include
 )
 
 add_library(${PROJECT_NAME} SHARED

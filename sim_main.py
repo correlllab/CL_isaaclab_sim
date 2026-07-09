@@ -4,6 +4,7 @@
 #!/usr/bin/env python3
 # main.py
 import os
+import asyncio
 
 project_root = os.path.dirname(os.path.abspath(__file__))
 os.environ["PROJECT_ROOT"] = project_root
@@ -19,28 +20,30 @@ from pathlib import Path
 
 # Isaac Lab AppLauncher
 from isaaclab.app import AppLauncher
-import carb
 
 from dds.dds_create import create_dds_objects,create_dds_objects_replay
 # add command line arguments
 parser = argparse.ArgumentParser(description="Unitree Simulation")
-parser.add_argument("--robot_type", type=str, default="h1_2", help="robot type")
-
 parser.add_argument("--task", type=str, default="Isaac-PickPlace-G129-Head-Waist-Fix", help="task name")
 parser.add_argument("--action_source", type=str, default="dds", 
                    choices=["dds", "file", "trajectory", "policy", "replay","dds_wholebody"], 
                    help="Action source")
 
 
+parser.add_argument("--robot_type", type=str, default="g129", help="robot type")
+parser.add_argument("--enable_dex1_dds", action="store_true", help="enable gripper DDS")
+parser.add_argument("--enable_dex3_dds", action="store_true", help="enable dexterous hand DDS")
 parser.add_argument("--enable_inspire_dds", action="store_true", help="enable inspire hand DDS")
 parser.add_argument("--stats_interval", type=float, default=10.0, help="statistics print interval (seconds)")
 
+parser.add_argument("--file_path", type=str, default="/home/unitree/Code/xr_teleoperate/teleop/utils/data", help="file path (when action_source=file)")
 parser.add_argument("--generate_data_dir", type=str, default="./data", help="save data dir")
 parser.add_argument("--generate_data", action="store_true", default=False, help="generate data")
 parser.add_argument("--rerun_log", action="store_true", default=False, help="rerun log")
 parser.add_argument("--replay_data",  action="store_true", default=False, help="replay data")
 
 parser.add_argument("--modify_light",  action="store_true", default=False, help="modify light")
+parser.add_argument("--modify_camera",  action="store_true", default=False,    help="modify camera")
 
 # performance analysis parameters
 parser.add_argument("--step_hz", type=int, default=100, help="control frequency")
@@ -48,45 +51,62 @@ parser.add_argument("--enable_profiling", action="store_true", default=True, hel
 parser.add_argument("--profile_interval", type=int, default=500, help="performance analysis report interval (steps)")
 
 parser.add_argument("--model_path", type=str, default="assets/model/policy.onnx", help="model path")
+parser.add_argument("--reward_interval", type=int, default=10, help="step interval for reward calculation")
 parser.add_argument("--enable_wholebody_dds", action="store_true", default=False, help="enable wh dds")
 
+parser.add_argument("--physics_dt", type=float, default=None, help="physics time step, e.g., 0.005")
+parser.add_argument("--render_interval", type=int, default=None, help="render interval steps (>=1)")
+parser.add_argument("--camera_write_interval", type=int, default=None, help="camera write interval steps (>=1)")
 
-parser.add_argument(
-    "--no_render",
-    action="store_true",
-    default=False,
-    help="disable rendering updates entirely (overrides render interval)",
-)
+
+parser.add_argument("--no_render",action="store_true",default=False,help="disable rendering updates entirely (overrides render interval)",)
+parser.add_argument("--public_ip",type=str,default="127.0.0.1",help="public ip")
+parser.add_argument("--livestream_type", type=int, default=2, help="livestream type (0: no livestream, 1: WebRTC public network, 2:  WebRTC private network)")
+
 parser.add_argument("--solver_iterations", type=int, default=None, help="physx solver iteration count (e.g., 4)")
 parser.add_argument("--gravity_z", type=float, default=None, help="override gravity z (e.g., -9.8)")
 parser.add_argument("--skip_cvtcolor", action="store_true", default=False, help="skip cv2.cvtColor if upstream already BGR")
 
+parser.add_argument("--camera_jpeg", action="store_true", default=True, help="enable JPEG compression for camera frames")
+parser.add_argument("--camera_jpeg_quality", type=int, default=85, help="JPEG quality (1-100)")
 
 parser.add_argument("--physx_substeps", type=int, default=None, help="physx substeps per step")
+parser.add_argument("--camera_include", type=str, default="front_camera,left_wrist_camera,right_wrist_camera", help="comma-separated camera names to enable")
+parser.add_argument("--camera_exclude", type=str, default="world_camera", help="comma-separated camera names to disable")
 
+parser.add_argument("--env_reward_interval", type=int, default=5, help="environment reward compute interval (steps)")
 parser.add_argument("--seed", type=int, default=42, help="environment seed")
-
-
 # add AppLauncher parameters
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
+if args_cli.no_render:
+    os.environ["LIVESTREAM"] = str(args_cli.livestream_type)
+    os.environ["PUBLIC_IP"] = args_cli.public_ip
+else:
+    os.environ["LIVESTREAM"] = "0"
+
+if args_cli.enable_dex3_dds and args_cli.enable_dex1_dds and args_cli.enable_inspire_dds:
+    print("Error: enable_dex3_dds and enable_dex1_dds and enable_inspire_dds cannot be enabled at the same time")
+    print("Please select one of the options")
+    sys.exit(1)
 
 
-import pinocchio                 
+#import pinocchio                 
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
-print(simulation_app)
+
 from layeredcontrol.robot_control_system import (
     RobotController, 
     ControlConfig,
 )
 
 from dds.reset_pose_dds import *
-import envs 
+import tasks
 from isaaclab_tasks.utils.parse_cfg import parse_env_cfg
 
 from tools.augmentation_utils import (
     update_light,
+    batch_augment_cameras_by_name,
 )
 
 from tools.data_json_load import sim_state_to_json
@@ -94,10 +114,10 @@ from dds.sim_state_dds import *
 from action_provider.create_action_provider import create_action_provider
 from tools.get_stiffness import get_robot_stiffness_from_env
 from tools.get_reward import get_step_reward_value,get_current_rewards
+from PIL import Image
 
-from isaacsim.core.utils.viewports import destroy_all_viewports
-
-def setup_signal_handlers(controller,dds_manager=None):
+#import ros2_imu_node_py
+def setup_signal_handlers(controller,dds_manager=None,image_server=None):
     """set signal handlers"""
     def signal_handler(signum, frame):
         print(f"\nreceived signal {signum}, stopping controller...")
@@ -110,13 +130,30 @@ def setup_signal_handlers(controller,dds_manager=None):
                 dds_manager.stop_all_communication()
         except Exception as e:
             print(f"Failed to stop DDS: {e}")
+        try:
+            if image_server is not None:
+                image_server.stop()
+        except Exception as e:
+            print(f"Failed to stop image server: {e}")
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
 
+sys.path.append("/workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-ros2-camera/build")
+sys.path.append("/workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-ros2-imu/build")
+sys.path.append("/workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-ros2-cloud/build")
+
+import ros2_point_cloud_node_py
+import ros2_camera_node_py
+import ros2_imu_node_py
 
 def main():
     """main function"""
+    # import cProfile
+    # import pstats
+    # import io
+    # profiler = cProfile.Profile()
+    # profiler.enable()
     import os
     import atexit
     try:
@@ -150,6 +187,7 @@ def main():
         print(f"Failed to parse environment configuration: {e}")
         return
     
+    import isaacsim.core.utils.extensions as exts_utils
     # create environment
     print("\ncreate environment...")
     try:
@@ -167,26 +205,120 @@ def main():
             print(f"[sim] failed to list sensors: {e}")
         print(f"\ncreate environment success ...")
         try:
-            env._reward_interval = 1
-            #env._reward_interval = max(1, int(args_cli.env_reward_interval))
+            env._reward_interval = max(1, int(args_cli.env_reward_interval))
             env._reward_counter = 0
             env._reward_last = None
             print(f"[env] reward compute interval set to {env._reward_interval} steps")
         except Exception as e:
             print(f"[env] failed to set reward interval: {e}")
+        if args_cli.physics_dt is not None:
+            try:
+                env.sim.set_substep_time(args_cli.physics_dt)
+                print(f"[sim] physics dt set to {args_cli.physics_dt}")
+            except Exception:
+                try:
+                    env.sim.dt = args_cli.physics_dt
+                    print(f"[sim] physics dt assigned to env.sim.dt={args_cli.physics_dt}")
+                except Exception as e:
+                    print(f"[sim] failed to set physics dt: {e}")
         headless_mode = bool(getattr(args_cli, "headless", False))
         render_interval = None
+        if args_cli.render_interval is not None:
+            try:
+                render_interval = max(1, int(args_cli.render_interval))
+            except Exception as e:
+                print(f"[sim] invalid render_interval value {args_cli.render_interval}: {e}")
         try:
-            if headless_mode:
+            if args_cli.no_render:
+                env.sim.render_interval = 1_000_000
+                env.sim.render_mode = "offscreen"
+                print("[sim] rendering disabled via --no_render")
+            elif headless_mode:
                 env.sim.render_mode = "offscreen"
                 env.sim.render_interval = render_interval or 1
                 print(f"[sim] headless offscreen rendering every {env.sim.render_interval} steps")
+            elif render_interval is not None:
+                env.sim.render_interval = render_interval
+                print(f"[sim] render_interval set to {env.sim.render_interval}")
         except Exception as e:
             print(f"[sim] failed to configure rendering: {e}")
+        if args_cli.camera_write_interval is not None:
+            try:
+                import tasks.common_observations.camera_state as cam_state
+                cam_state._camera_cache['write_interval_steps'] = max(1, int(args_cli.camera_write_interval))
+                print(f"[camera] write interval steps set to {cam_state._camera_cache['write_interval_steps']}")
+            except Exception as e:
+                print(f"[camera] failed to set write interval: {e}")
 
+        try:
+            if args_cli.solver_iterations is not None:
+                env.sim.physx.solver_iteration_count = int(args_cli.solver_iterations)
+                print(f"[sim] solver_iteration_count={env.sim.physx.solver_iteration_count}")
+            if args_cli.physx_substeps is not None:
+                try:
+                    env.sim.physx.substeps = int(args_cli.physx_substeps)
+                except Exception:
+                    try:
+                        env.sim.set_substeps(int(args_cli.physx_substeps))
+                    except Exception:
+                        pass
+                print(f"[sim] physx_substeps set to {args_cli.physx_substeps}")
+            if args_cli.gravity_z is not None:
+                g = float(args_cli.gravity_z)
+                env.sim.physx.gravity = (0.0, 0.0, g)
+                print(f"[sim] gravity set to {env.sim.physx.gravity}")
+        except Exception as e:
+            print(f"[sim] failed to set physx params: {e}")
+        if args_cli.skip_cvtcolor:
+            os.environ["CAMERA_SKIP_CVTCOLOR"] = "1"
+        try:
+            import tasks.common_observations.camera_state as cam_state
+            enable_jpeg = bool(args_cli.camera_jpeg) or (os.getenv("CAMERA_JPEG") == "1")
+            jpeg_quality = int(args_cli.camera_jpeg_quality if args_cli.camera_jpeg else os.getenv("CAMERA_JPEG_QUALITY", args_cli.camera_jpeg_quality))
+            cam_state.set_writer_options(enable_jpeg=enable_jpeg, jpeg_quality=jpeg_quality, skip_cvtcolor=args_cli.skip_cvtcolor)
+            include = [n.strip() for n in (args_cli.camera_include or "").split(',') if n.strip()]
+            exclude = [n.strip() for n in (args_cli.camera_exclude or "").split(',') if n.strip()]
+            try:
+                cam_state.set_camera_allowlist(include)
+            except Exception:
+                pass
+            try:
+                sensors_dict = getattr(env.scene, "sensors", {})
+                for name, sensor in sensors_dict.items():
+                    lname = name.lower()
+                    if "camera" not in lname:
+                        continue
+                    if exclude and name in exclude:
+                        for attr_name, value in [("enabled", False), ("is_enabled", False)]:
+                            if hasattr(sensor, attr_name):
+                                try:
+                                    setattr(sensor, attr_name, value)
+                                except Exception:
+                                    pass
+                        for meth in ("set_active", "disable", "pause"):
+                            if hasattr(sensor, meth):
+                                try:
+                                    getattr(sensor, meth)(False)
+                                except Exception:
+                                    pass
+                        for attr_name in ("update_period", "_update_period"):
+                            if hasattr(sensor, attr_name):
+                                try:
+                                    setattr(sensor, attr_name, 1e6)
+                                except Exception:
+                                    pass
+                    elif include and name not in include:
+                        for attr_name in ("update_period", "_update_period"):
+                            if hasattr(sensor, attr_name):
+                                try:
+                                    setattr(sensor, attr_name, 1e6)
+                                except Exception:
+                                    pass
+            except Exception as e:
+                print(f"[camera] failed to tune sensors: {e}")
+        except Exception as e:
+            print(f"[camera] failed to apply writer options: {e}")
     except Exception as e:
-        import traceback
-        print(traceback.print_exc())
         print(f"\nFailed to create environment: {e}")
         return
     
@@ -215,7 +347,6 @@ def main():
         print("***  Running without GUI; rendering handled offscreen. ***")
         print("\n")
     # reset environment
-
     if args_cli.modify_light:
         update_light(
             prim_path="/World/light",
@@ -226,10 +357,19 @@ def main():
             enabled=True,
             cast_shadows=True
         )
+    if args_cli.modify_camera:
+        batch_augment_cameras_by_name(
+            names=["front_cam"],
+            focal_length=3.0,
+            horizontal_aperture=22.0,
+            vertical_aperture=16.0,
+            exposure=0.8,                
+            focus_distance=1.2
+        )
     env.sim.reset()
     env.reset()
     
-    destroy_all_viewports(None, False)
+    # create simplified control configuration
     try:    
         control_config = ControlConfig(
             step_hz=args_cli.step_hz,
@@ -242,10 +382,17 @@ def main():
     # create controller
 
     if not args_cli.replay_data:
+        print("========= create image server =========")
+        try:
+            #image_server = run_isaacsim_server()
+            pass
+        except Exception as e:
+            print(f"Failed to create image server: {e}")
+            return
+        print("========= create image server success =========")
         print("========= create dds =========")
         try:
             reset_pose_dds,sim_state_dds,dds_manager = create_dds_objects(args_cli,env)
-
         except Exception as e:
             print(f"Failed to create dds: {e}")
             return
@@ -299,33 +446,12 @@ def main():
 
     # set signal handlers
     if not args_cli.replay_data:
-        setup_signal_handlers(controller,dds_manager)
+        setup_signal_handlers(controller, dds_manager)
+        #setup_signal_handlers(controller,dds_manager,image_server)
     else:
         setup_signal_handlers(controller)
-    
-    simulation_app.app.get_extension_manager().add_path("/home/code/CL_isaaclab_sim/exts")
-    simulation_app.app.get_extension_manager().refresh_registry()
-    import isaacsim.core.utils.extensions as extensions_utils
-    extensions_utils.enable_extension("cl.ros2.realsense")
-    extensions_utils.enable_extension("isaacsim.ros2.bridge")
-    extensions_utils.enable_extension("cl.ros2.livox")
-    import omni.graph.core as og
-    try:
-        keys = og.Controller.Keys
-        graph_handle, list_of_nodes, _, _ = og.Controller.edit(
-            {"graph_path": "/action_graph3", "evaluator_name": "execution"},
-            {
-                keys.CREATE_NODES: [("tick", "omni.graph.action.OnPlaybackTick"), ("livox", "cl.ros2.livox.ClRos2LivoxPy"), ("realsense", "cl.ros2.realsense.ClRos2RealsensePy")],
-                keys.CONNECT: [("tick.outputs:tick", "livox.inputs:execution"), ("tick.outputs:tick", "realsense.inputs:execution")],
-            },
-        )
-    except:
-        import traceback
-        traceback.print_exc()
-
-#    print("Note: The DDS in Sim transmits messages on channel 1. Please ensure that other DDS instances use the same channel for message exchange by setting: ChannelFactoryInitialize(1).")
-    env.reset()
-    env.sim.reset()
+        
+    print("Note: The DDS in Sim transmits messages on channel 1. Please ensure that other DDS instances use the same channel for message exchange by setting: ChannelFactoryInitialize(1).")
     try:
         # start controller - start asynchronous components
         print("========= start controller =========")
@@ -340,39 +466,211 @@ def main():
         recent_loop_times = []  # for calculating moving average frequency
         
         
-        #reward_interval = max(1, args_cli.reward_interval)
+        reward_interval = max(1, args_cli.reward_interval)
+        import isaacsim.core.utils.extensions as extensions_utils
 
+        #ros2_nvjpeg_compressed_image_publisher_py.spin_rclcpp()
+        #ros2_nvjpeg_interface = ros2_nvjpeg_compressed_image_publisher_py.ros2_nvjpeg_compressed_image_publisher(["/realsense/left_hand/color/image_raw/compressed", "/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "/realsense/right_hand/color/image_raw/compressed", "/realsense/right_hand/aligned_depth_to_color/image_raw/compressed"])
+
+        #simulation_app.app.get_extension_manager().add_path("/workspace/isaaclab/kit-extension-template-cpp/_build/linux-x86_64/release/exts")
+        #simulation_app.app.get_extension_manager().refresh_registry()
+        #exts_utils.enable_extension("correll.ros2.livox.lidar")
+
+        #import omni.graph.core as og
+        #try:
+        #    keys = og.Controller.Keys
+        #    graph_handle, list_of_nodes, _, _ = og.Controller.edit(
+        #        {"graph_path": "/action_graph3", "evaluator_name": "execution"},
+        #        {
+        #            keys.CREATE_NODES: [("tick", "omni.graph.action.OnPlaybackTick"), ("livox", "cl.ros2.livox.ClRos2LivoxPy"), ("realsense", "cl.ros2.realsense.ClRos2RealsensePy")],
+        #            keys.CONNECT: [("tick.outputs:tick", "livox.inputs:execution"), ("tick.outputs:tick", "realsense.inputs:execution")],
+        #        },
+        #    )
+        #except:
+        #    import traceback
+        #    traceback.print_exc()
+
+        #ros2_imu_publisher = ros2_livox_imu_publisher_py.ros2_livox_imu_publisher("/test_imu")
         # use torch.inference_mode() and exception suppression
+
+        ros2_camera_node_py.spin_rclcpp()
+        camera_node = ros2_camera_node_py.ros2_camera_node(["/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "/realsense/left_hand/color/image_raw/compressed"])
+        cloud_node = ros2_point_cloud_node_py.ros2_point_cloud_node(["/lidar/first_link", "/lidar/second_link"])
+        imu_node = ros2_imu_node_py.ros2_imu_node("/imu/base_link")
+        import PIL
+        from torchvision import transforms
+        transform = transforms.ToPILImage()
+        transform2 = transforms.PILToTensor()
         with contextlib.suppress(KeyboardInterrupt), torch.inference_mode():
+
             while simulation_app.is_running() and controller.is_running:
                 current_time = time.time()
                 loop_count += 1
-                imu_data = env.scene['test_imu'].data
-                quat_w = imu_data.quat_w.cpu().numpy().tolist()
-                projected_gravity_b = imu_data.projected_gravity_b.cpu().numpy().tolist()
-                pos_w = imu_data.pos_w.cpu().numpy().tolist()
-                lin_vel_b = imu_data.lin_vel_b.cpu().numpy().tolist()
-                lin_acc_b = imu_data.lin_acc_b.cpu().numpy().tolist()
-                ang_vel_b = imu_data.ang_vel_b.cpu().numpy().tolist()
-                ang_acc_b = imu_data.ang_acc_b.cpu().numpy().tolist()
-
-                og.Controller.attribute("/action_graph3/livox.inputs:quat_w").set(quat_w)
-                og.Controller.attribute("/action_graph3/livox.inputs:pos_w").set(pos_w)
-                og.Controller.attribute("/action_graph3/livox.inputs:lin_vel_b").set(lin_vel_b)
-                og.Controller.attribute("/action_graph3/livox.inputs:lin_acc_b").set(lin_acc_b)
-                og.Controller.attribute("/action_graph3/livox.inputs:ang_acc_b").set(ang_acc_b)
-                og.Controller.attribute("/action_graph3/livox.inputs:ang_vel_b").set(ang_vel_b)
                 if not args_cli.replay_data:
                     try:
                         env_state = env.scene.get_state()
-
                         env_state_json =  sim_state_to_json(env_state)
-                        with open("/home/code/.resetsimstate", "w") as f:
-                            f.write(env_state_json)
                         sim_state = {"init_state":env_state_json,"task_name":args_cli.task}
                     except Exception as e:
                         print(f"Failed to get env state: {e}")
                         raise e
+                    try:
+                        pass
+                        #import numpy as np
+                        rgb_data = env.scene['left_wrist_camera']._data.output['rgb'].reshape((640, 480, 3))
+                        #rgb_pil = transform(rgb_data.cpu().numpy())
+                        #rgb_data = transform2(rgb_pil.convert("RGB")).reshape((640, 480, 3)).to("cuda")
+                        depth_data = env.scene['left_wrist_camera']._data.output['distance_to_image_plane'].reshape((640,480, 1))
+                        valid_mask = torch.isfinite(depth_data)
+                        valid_values = depth_data[valid_mask]
+                        vmin, vmax = torch.min(valid_values), torch.max(valid_values)
+                        depth_clean = torch.where(valid_mask, depth_data, vmin)
+                        normalized = (depth_clean - vmin) / (vmax - vmin)
+                        depth_u8 = (normalized * 255).to(torch.uint8)
+                        print(rgb_data)
+                        print(depth_data)
+                        print(rgb_data.shape)
+                        print(depth_data.shape)
+                        camera_node.push_data_to_deque(rgb_data.data_ptr(), rgb_data.shape[0], rgb_data.shape[1], "/realsense/left_hand/color/image_raw/compressed", "INTERLEAVED")
+                        camera_node.push_data_to_deque(depth_u8.data_ptr(), depth_u8.shape[0], depth_u8.shape[1], "/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "PLANAR")
+                        #print(env.scene['left_wrist_camera']._data.output['rgb'])
+                        #print(env.scene['left_wrist_camera']._data.output['rgb'].shape)
+                        #left_wrist_camera_color_tensor = env.scene['left_wrist_camera']._data.output['rgb'].reshape(480, 640, 3)
+
+                        #right_wrist_camera_color_tensor = env.scene['right_wrist_camera']._data.output['rgb'].reshape(480, 640, 3)
+                        #left_wrist_camera_depth_tensor = env.scene['left_wrist_camera']._data.output['distance_to_image_plane'].reshape(480, 640, 1)
+
+                        #right_wrist_camera_depth_tensor = env.scene['right_wrist_camera']._data.output['distance_to_image_plane'].reshape(480, 640, 1)
+
+                        #valid_mask = torch.isfinite(left_wrist_camera_depth_tensor)
+                        #valid_values = left_wrist_camera_depth_tensor[valid_mask]
+                        #vmin, vmax = torch.min(valid_values), torch.max(valid_values)
+                        #depth_clean = torch.where(valid_mask, left_wrist_camera_depth_tensor, vmin)
+                        #normalized = (depth_clean - vmin) / (vmax - vmin)
+                        #left_wrist_camera_depth_tensor = (normalized * 255).type(torch.uint8)
+                        #
+                        #left_depth_ptr = left_wrist_camera_depth_tensor.data_ptr()
+                        #left_depth_height = left_wrist_camera_depth_tensor.shape[0]
+                        #left_depth_width = left_wrist_camera_depth_tensor.shape[1]
+                        #left_color_ptr = left_wrist_camera_color_tensor.data_ptr()
+                        #left_height = left_wrist_camera_color_tensor.shape[0]
+                        #left_width = left_wrist_camera_color_tensor.shape[1]
+
+                        #valid_mask = torch.isfinite(right_wrist_camera_depth_tensor)
+                        #valid_values = right_wrist_camera_depth_tensor[valid_mask]
+                        #vmin, vmax = torch.min(valid_values), torch.max(valid_values)
+                        #depth_clean = torch.where(valid_mask, right_wrist_camera_depth_tensor, vmin)
+                        #normalized = (depth_clean - vmin) / (vmax - vmin)
+                        #right_wrist_camera_depth_tensor = (normalized * 255).type(torch.uint8)
+
+                        #right_color_ptr = right_wrist_camera_color_tensor.data_ptr()
+                        #right_height = right_wrist_camera_color_tensor.shape[0]
+                        #right_width = right_wrist_camera_color_tensor.shape[1]
+
+                        #right_depth_ptr = right_wrist_camera_depth_tensor.data_ptr()
+                        #right_depth_height = right_wrist_camera_depth_tensor.shape[0]
+                        #right_depth_width = right_wrist_camera_depth_tensor.shape[1]
+                        ##to_numpy = raw_depth_tensor.cpu().numpy()
+                        ##img = Image.fromarray((to_numpy * 255).astype(np.uint8))
+
+                        ##img.save("test_deph2.png")
+                        ##valid_mask = torch.isfinite(raw_depth_tensor)
+                        ##valid_values = raw_depth_tensor[valid_mask]
+                        ##vmin, vmax = torch.min(valid_values), torch.max(valid_values)
+                        ##depth_clean = torch.where(valid_mask, raw_depth_tensor, vmin)
+                        ##normalized = (depth_clean - vmin) / (vmax - vmin)
+                        ##depth_u8 = (normalized * 255).type(torch.uint8)
+                        ####print(depth_u8)
+                        ##depth_ptr = depth_u8.data_ptr()
+                        ##depth_width = depth_u8.shape[1]
+                        ##depth_height = depth_u8.shape[0]
+                        #ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", left_depth_ptr, left_depth_width, left_depth_height)
+                        ##print(depth_u8.shape)
+                        ##print(depth_u8.dtype)
+                        ##print(f"{depth_u8=}")
+                        ##depth_u8 = torch.squeeze(depth_u8, axis=-1)
+                        ###image = Image.fromarray(depth_u8)
+                        ####image.save("test_depth.png")
+                        ###print(f"{raw_depth_tensor.shape=}")
+                        ##depth_ptr = depth_u8.data_ptr()
+                        ##depth_width = depth_u8.shape[1]
+                        ##depth_height = depth_u8.shape[0]
+                        ##ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/right_hand/color/image_raw/compressed", ptr2, width2, height2)
+                        #ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/right_hand/aligned_depth_to_color/image_raw/compressed", right_depth_ptr, right_depth_width, right_depth_height)
+                        #ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/left_hand/color/image_raw/compressed", left_color_ptr, left_width, left_height)
+                        #ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/right_hand/color/image_raw/compressed", right_color_ptr, right_width, right_height)
+                        ##ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", depth_ptr, depth_width, depth_height)
+
+
+
+                        ##raw_depth_tensor = env.scene['right_wrist_camera']._data.output['distance_to_image_plane'].reshape(480, 640, 1)
+
+                        ##valid_mask = torch.isfinite(raw_depth_tensor)
+                        ##valid_values = raw_depth_tensor[valid_mask]
+                        ##vmin, vmax = torch.min(valid_values), torch.max(valid_values)
+                        ##depth_clean = torch.where(valid_mask, raw_depth_tensor, vmin)
+                        ##normalized = (depth_clean - vmin) / (vmax - vmin)
+                        ##depth_u8 = (normalized * 255).type(torch.uint8)
+                        ##depth_u8 = torch.squeeze(depth_u8, axis=-1)
+                        ##depth_ptr = depth_u8.data_ptr()
+                        ##depth_width = depth_u8.shape[1]
+                        ##depth_height = depth_u8.shape[0]
+
+                        #print(f"{env.scene['livox_imu']._data=}")
+                        #print(f"{env.scene['livox_imu']._data.quat_w=}")
+                        #print(f"{env.scene['livox_imu']._data.lin_vel_b=}")
+                        #print(f"{env.scene['livox_imu']._data.lin_acc_b=}")
+                        #print(f"{env.scene['livox_imu']._data.ang_vel_b=}")
+                        #print(f"{env.scene['livox_imu']._data.ang_acc_b=}")
+
+
+                        #print(f"{env.scene['livox_imu']._data.quat_w.shape=}")
+                        #print(f"{env.scene['livox_imu']._data.lin_vel_b.shape=}")
+                        #print(f"{env.scene['livox_imu']._data.lin_acc_b.shape=}")
+                        #print(f"{env.scene['livox_imu']._data.ang_vel_b.shape=}")
+                        #print(f"{env.scene['livox_imu']._data.ang_acc_b.shape=}")
+
+                        #print("\n\n\n")
+
+                        #print(f"{env.scene['livox_imu']._data.quat_w.cpu().numpy().tolist()=}")
+                        #print(f"{env.scene['livox_imu']._data.lin_vel_b.flatten().cpu().numpy()=}")
+                        #print(f"{env.scene['livox_imu']._data.lin_acc_b.flatten().cpu().numpy()=}")
+                        #print(f"{env.scene['livox_imu']._data.ang_vel_b.flatten().cpu().numpy()=}")
+                        #print(f"{env.scene['livox_imu']._data.ang_acc_b.flatten().cpu().numpy()=}")
+
+
+                        #orient_quat = env.scene['livox_imu']._data.quat_w.flatten().cpu().numpy()
+                        #orient_covar = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+                        #ang_vel = env.scene['livox_imu']._data.ang_vel_b.flatten().cpu().numpy()
+                        #ang_vel_covar = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+                        #lin_acc = env.scene['livox_imu']._data.lin_acc_b.flatten().cpu().numpy()
+                        #lin_acc_covar = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+                        #ros2_imu_publisher.publish_imu_data(orient_quat, orient_covar, ang_vel, ang_vel_covar, lin_acc, lin_acc_covar)
+                        ##ang vel, lin acc
+
+
+                        #print(f"{env.scene['livox_lidar']._data=}")
+                        #print(f"{env.scene['livox_lidar']._data.ray_hits_w=}")
+                        #print(f"{env.scene['livox_lidar']._data.ray_hits_w.shape=}")
+                        #print(f"{torch.isfinite(env.scene['livox_lidar']._data.ray_hits_w)=}")
+
+                        ##valid_mask = torch.isfinite(env.scene['livox_lidar']._data.ray_hits_w)
+                        ##valid_values = env.scene['livox_lidar']._data.ray_hits_w[valid_mask] 
+                        ##print(f"{valid_values=}")
+                        ##print(f"{valid_values.shape=}")
+                        ##print(f"{valid_values.device=}")
+                        ##print(f"{valid_values.data_ptr()=}")
+                        ##breakpoint()
+
+
+                        ###ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/right_hand/aligned_depth_to_color/image_raw/compressed", depth_ptr, depth_width, depth_height)
+                    except Exception as e:
+                        import traceback
+                        traceback.print_exc()
+                        breakpoint()
+
                     try:
                     # sim_state = json.dumps(sim_state)
                         sim_state_dds.write_sim_state_data(sim_state)
@@ -384,6 +682,14 @@ def main():
                     except Exception as e:
                         print(f"Failed to get reset pose command: {e}")
                         raise e
+                    # Compute current reward values manually if needed for debugging
+                    try:
+                        if (loop_count % reward_interval) == 0:
+                            pass
+                            # current_reward = get_step_reward_value(env)
+                    except Exception as e:
+                        print(f"奖励计算失败: {e}")
+                        pass
                     
                     if reset_pose_cmd is not None:
                         try:
@@ -418,13 +724,17 @@ def main():
                         except Exception as e:
                             print(f"Failed to start replay: {e}")
                             raise e
+                # print(f"env_state: {env_state}")
+                # calculate instantaneous loop time
                 loop_dt = current_time - last_loop_time
                 last_loop_time = current_time
                 recent_loop_times.append(loop_dt)
                 
+                # keep recent 100 loop times
                 if len(recent_loop_times) > 100:
                     recent_loop_times.pop(0)
                 
+                # execute control step (in main thread, support rendering)
                 controller.step()
 
                 # print statistics and loop frequency periodically
@@ -445,6 +755,20 @@ def main():
                         moving_avg_frequency = 0
                         min_freq = max_freq = 0
                     
+                    print(f"\n=== While loop execution frequency statistics ===")
+                    print(f"loop execution count: {loop_count}")
+                    print(f"running time: {elapsed_time:.2f} seconds")
+                    print(f"overall average frequency: {loop_frequency:.2f} Hz")
+                    print(f"moving average frequency: {moving_avg_frequency:.2f} Hz (last {len(recent_loop_times)} times)")
+                    print(f"frequency range: {min_freq:.2f} - {max_freq:.2f} Hz")
+                    print(f"average loop time: {(elapsed_time/loop_count*1000):.2f} ms")
+                    if recent_loop_times:
+                        print(f"recent loop time: {(avg_loop_time*1000):.2f} ms")
+                    print(f"=============================")
+                    
+                    # print_stats(controller)
+                    last_stats_time = current_time
+       
                 # check environment state
                 if env.sim.is_stopped():
                     print("\nenvironment stopped")
@@ -453,26 +777,26 @@ def main():
     except KeyboardInterrupt:
         print("\nuser interrupted program")
     
-        traceback.print_exc()
     except Exception as e:
         print(f"\nprogram exception: {e}")
-        import traceback
-        traceback.print_exc()
     
     finally:
         # clean up resources
         print("\nclean up resources...")
         controller.cleanup()
+        image_server.stop()
         env.close()
         print("cleanup completed")
+    # profiler.disable()
+    # s = io.StringIO()
+    # ps = pstats.Stats(profiler, stream=s).strip_dirs().sort_stats("time")
+    # ps.print_stats(30)  
+
+    # print(s.getvalue())
 
 if __name__ == "__main__":
     try:
         main()
-
-    except:
-        import traceback
-        traceback.print_exc()
     finally:
         print("Performing final cleanup...")
         
@@ -521,13 +845,9 @@ if __name__ == "__main__":
                                 
         except Exception as e:
             print(f"Error during process cleanup: {e}")
-            import traceback
-            traceback.print_exc()
         
         try:
             simulation_app.close()
-            with open("/home/code/.resetsimstate", "w") as f:
-                f.write()
         except Exception as e:
             print(f"Failed to close simulation application: {e}")
             
@@ -536,3 +856,27 @@ if __name__ == "__main__":
         # Force exit
         os._exit(0)
 
+# python sim_main.py --device cpu  --enable_cameras  --task  Isaac-PickPlace-Cylinder-G129-Dex1-Joint   --enable_dex1_dds --robot_type g129
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-Cylinder-G129-Dex3-Joint    --enable_dex3_dds --robot_type g129
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-Cylinder-G129-Inspire-Joint    --enable_inspire_dds --robot_type g129
+
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-RedBlock-G129-Dex1-Joint     --enable_dex1_dds --robot_type g129
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-RedBlock-G129-Dex3-Joint    --enable_dex3_dds --robot_type g129
+# python sim_main.py --device cpu  --enable_cameras  --task  Isaac-PickPlace-RedBlock-G129-Inspire-Joint    --enable_inspire_dds --robot_type g129
+
+
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-G129-Dex1-Joint     --enable_dex1_dds --robot_type g129
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-G129-Dex3-Joint     --enable_dex3_dds --robot_type g129
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-G129-Inspire-Joint     --enable_inspire_dds --robot_type g129
+
+
+
+
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Move-Cylinder-G129-Dex1-Wholebody  --robot_type g129 --enable_dex1_dds 
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Move-Cylinder-G129-Dex3-Wholebody  --robot_type g129 --enable_dex3_dds 
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Move-Cylinder-G129-Inspire-Wholebody  --robot_type g129 --enable_inspire_dds 
+
+
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-Cylinder-H12-27dof-Inspire-Joint  --enable_inspire_dds --robot_type h1_2
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-RedBlock-H12-27dof-Inspire-Joint  --enable_inspire_dds --robot_type h1_2
+# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-H12-27dof-Inspire-Joint --enable_inspire_dds --robot_type h1_2

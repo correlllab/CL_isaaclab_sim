@@ -11,19 +11,19 @@ def create_dds_objects(args_cli,env):
         dds_manager.register_object("g129", g1_robot)
         publish_names.append("g129")
         subscribe_names.append("g129")
-#    if args_cli.enable_dex3_dds:
-#        from dds.dex3_dds import Dex3DDS
-#        dex3 = Dex3DDS() 
-#        dds_manager.register_object("dex3", dex3)
-#        publish_names.append("dex3")
-#        subscribe_names.append("dex3")
-#    elif args_cli.enable_dex1_dds:
-#        from dds.gripper_dds import GripperDDS
-#        gripper = GripperDDS()
-#        dds_manager.register_object("dex1", gripper)
-#        publish_names.append("dex1")
-#        subscribe_names.append("dex1")
-    if args_cli.enable_inspire_dds:
+    if args_cli.enable_dex3_dds:
+        from dds.dex3_dds import Dex3DDS
+        dex3 = Dex3DDS() 
+        dds_manager.register_object("dex3", dex3)
+        publish_names.append("dex3")
+        subscribe_names.append("dex3")
+    elif args_cli.enable_dex1_dds:
+        from dds.gripper_dds import GripperDDS
+        gripper = GripperDDS()
+        dds_manager.register_object("dex1", gripper)
+        publish_names.append("dex1")
+        subscribe_names.append("dex1")
+    elif args_cli.enable_inspire_dds:
         from dds.inspire_dds import InspireDDS
         inspire = InspireDDS()
         dds_manager.register_object("inspire", inspire)
@@ -61,19 +61,19 @@ def create_dds_objects_replay(args_cli,env):
         dds_manager.register_object("g129", g1_robot)
         publish_names.append("g129")
         subscribe_names.append("g129")
-    #if args_cli.enable_dex3_dds:
-    #    from dds.dex3_dds import Dex3DDS
-    #    dex3 = Dex3DDS() 
-    #    dds_manager.register_object("dex3", dex3)
-    #    publish_names.append("dex3")
-    #    subscribe_names.append("dex3")
-    #elif args_cli.enable_dex1_dds:
-    #    from dds.gripper_dds import GripperDDS
-    #    gripper = GripperDDS()
-    #    dds_manager.register_object("dex1", gripper)
-    #    publish_names.append("dex1")
-    #    subscribe_names.append("dex1")
-    if args_cli.enable_inspire_dds:
+    if args_cli.enable_dex3_dds:
+        from dds.dex3_dds import Dex3DDS
+        dex3 = Dex3DDS() 
+        dds_manager.register_object("dex3", dex3)
+        publish_names.append("dex3")
+        subscribe_names.append("dex3")
+    elif args_cli.enable_dex1_dds:
+        from dds.gripper_dds import GripperDDS
+        gripper = GripperDDS()
+        dds_manager.register_object("dex1", gripper)
+        publish_names.append("dex1")
+        subscribe_names.append("dex1")
+    elif args_cli.enable_inspire_dds:
         from dds.inspire_dds import InspireDDS
         inspire = InspireDDS()
         dds_manager.register_object("inspire", inspire)

@@ -45,7 +45,7 @@ class Ros2CameraNode : public rclcpp::Node {
     Ros2CameraNode(std::vector<std::string> topics);
     ~Ros2CameraNode();
 
-    void PushDataToDeque(long dataPtr, int width, int height, std::string topic);
+    void PushDataToDeque(long dataPtr, int width, int height, std::string topic, std::string structure);
 
 
   private:
@@ -56,10 +56,10 @@ class Ros2CameraNode : public rclcpp::Node {
     std::unordered_map<std::string, std::unique_ptr<ImageDeque>> mDequeMap;
     std::unordered_map<std::string, std::unique_ptr<NvjpegEncoder>> mEncoderMap;
     std::unordered_map<std::string, rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr> mPublisherMap;
-    ImageDeque mDeque;
+    //ImageDeque mDeque;
     ThreadPool mPool{2};
-    rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr mCompressedImagePublisher;
-    NvjpegEncoder mEncoder{DataType::RGB};
+    //rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr mCompressedImagePublisher;
+    //NvjpegEncoder mEncoder{DataType::RGB};
 
 
 

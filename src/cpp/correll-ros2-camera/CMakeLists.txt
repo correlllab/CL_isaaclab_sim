@@ -21,7 +21,7 @@ set(NVJPEG_LIB
 file(GLOB_RECURSE ROS2_HEADERS /opt/ros/jazzy/include//*.h*)
 
 set(CUDA_INCLUDE
-  ${ISAAC_SIM_ROOT}/kit/python/lib/python3.11/site-packages/nvidia/nvjpeg/include
+  ${ISAAC_SIM_ROOT}/kit/python/lib/python3.11/site-packages/nvidia/cu13/include
 )
 
 set(CORRELL_COMMON_INCLUDE

@@ -22,8 +22,8 @@ node = ros2_camera_node_py.ros2_camera_node(["/realsense/left_hand/color/image_r
 import time
 
 while True:
-    node.push_data_to_deque(rgb_img_tensor.data_ptr(), rgb_img_tensor.shape[0], rgb_img_tensor.shape[1], "/realsense/left_hand/color/image_raw/compressed")
-    node.push_data_to_deque(depth_img_tensor.data_ptr(), depth_img_tensor.shape[0], depth_img_tensor.shape[1], "/realsense/left_hand/aligned_depth_to_color/image_raw/compressed")
+    node.push_data_to_deque(rgb_img_tensor.data_ptr(), rgb_img_tensor.shape[0], rgb_img_tensor.shape[1], "/realsense/left_hand/color/image_raw/compressed", "PLANAR")
+    node.push_data_to_deque(depth_img_tensor.data_ptr(), depth_img_tensor.shape[0], depth_img_tensor.shape[1], "/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "PLANAR")
 
     time.sleep(1)
     pass

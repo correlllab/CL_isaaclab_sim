@@ -6,15 +6,16 @@
 
 #include <nvjpeg.h>
 
+enum class Structure {INTERLEAVED, PLANAR};
+
+enum class DataType {DEPTH, RGB};
+
 struct ImageData {
 
   long dataPtr;
   int width, height;
+  Structure structure;
 };
-
-
-
-enum class DataType {DEPTH, RGB};
 
 class NvjpegEncoder {
   public:

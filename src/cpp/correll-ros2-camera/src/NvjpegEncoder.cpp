@@ -22,6 +22,8 @@ NvjpegEncoder::NvjpegEncoder(DataType dtype) {
 
 }
 
+
+
 NvjpegEncoder::~NvjpegEncoder() {
   nvjpegEncoderParamsDestroy(mNvEncParams);
   nvjpegDestroy(mNvHandle);
@@ -29,22 +31,30 @@ NvjpegEncoder::~NvjpegEncoder() {
 }
 
 std::vector<unsigned char> NvjpegEncoder::Encode(ImageData data) {
-  std::cout << "encoding!" << "\n";
-  std::cout << data.dataPtr << "\n";
-  std::cout << data.width << "\n";
-  std::cout << data.height << "\n";
+  nvjpegStatus_t err;
   unsigned char* dataPtr = reinterpret_cast<unsigned char*>(data.dataPtr);
   nvjpegImage_t nvImage;
-  if (true) {
-    //works for both grayscale 1 channel and rgb planar...why, idk, it shouldnt but it does and it dosnt really make sense hy
-    //works ofr grayscale but loses brightness
+
+  if (data.structure == Structure::INTERLEAVED) {
+    //if interleaved
     nvImage.channel[0] = dataPtr;
-    //for rgb planar:
+    nvImage.pitch[0] = data.width * 3;
+    nvImage.channel[1] = NULL;
+    nvImage.channel[2] = NULL;
+    nvImage.channel[3] = NULL;
+
+    nvjpegStatus_t err = nvjpegEncodeImage(mNvHandle, mNvState, mNvEncParams, &nvImage, NVJPEG_INPUT_RGBI, data.width, data.height, mCuda);
+  
+  } else if (data.structure == Structure::PLANAR) {
+  
+    nvImage.channel[0] = dataPtr;
     nvImage.channel[1] = dataPtr + data.width * data.height;
     nvImage.channel[2] = dataPtr + 2* data.width * data.height;
     nvImage.pitch[0] = data.width;
     nvImage.pitch[1] = data.width;
     nvImage.pitch[2] = data.width;
+
+    nvjpegStatus_t err = nvjpegEncodeImage(mNvHandle, mNvState, mNvEncParams, &nvImage, NVJPEG_INPUT_RGB, data.width, data.height, mCuda);
   }
 
   //for rgbi:
@@ -53,19 +63,18 @@ std::vector<unsigned char> NvjpegEncoder::Encode(ImageData data) {
   //nvImage.channel[2] = NULL;
   //nvImage.channel[3] = NULL;
 
-  nvjpegStatus_t err = nvjpegEncodeImage(mNvHandle, mNvState, mNvEncParams, &nvImage, NVJPEG_INPUT_RGB, data.width, data.height, mCuda);
-  std::cout << "err: " << (err) << "\n";
+  //nvjpegStatus_t err = nvjpegEncodeImage(mNvHandle, mNvState, mNvEncParams, &nvImage, NVJPEG_INPUT_RGB, data.width, data.height, mCuda);
+  //std::cout << "err: " << (err) << "\n";
   size_t length = 0;
   nvjpegEncodeRetrieveBitstream(mNvHandle, mNvState, NULL, &length, NULL);
   cudaStreamSynchronize(mCuda);
   std::vector<unsigned char> buffer(length);
-  std::cout << "length should be: " << length << "\n";
   nvjpegEncodeRetrieveBitstream(mNvHandle, mNvState, buffer.data(), &length, 0);
+  std::cout << buffer.size() << "\n";
   cudaStreamSynchronize(mCuda);
-  std::cout << "new jpeg size: " << buffer.size() << "\n";
-  std::ofstream output_file("test.jpg", std::ios::out | std::ios::binary);
-  output_file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size());
-  output_file.close();
+  //std::ofstream output_file("test.jpg", std::ios::out | std::ios::binary);
+  //output_file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size());
+  //output_file.close();
   
   return buffer;
 

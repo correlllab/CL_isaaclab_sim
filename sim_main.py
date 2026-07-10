@@ -117,7 +117,6 @@ from tools.get_stiffness import get_robot_stiffness_from_env
 from tools.get_reward import get_step_reward_value,get_current_rewards
 from PIL import Image
 
-#import ros2_imu_node_py
 def setup_signal_handlers(controller,dds_manager=None,image_server=None):
     """set signal handlers"""
     def signal_handler(signum, frame):
@@ -518,9 +517,12 @@ def main():
                         print(f"faled to publish cloud data")
 
                     try:
+
                         imu_data = env.scene['imu']._data
-                        imu_node.push_data_to_deque(imu_data.quat_w.to(torch.float).cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0], imu_data.ang_vel_b.to(torch.float).tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0], imu_data.lin_acc_b.to(torch.float).tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0])
-                        print(f"{imu_data=}")
+                        if not imu_data.quat_w[0][0] == 1:
+
+                            imu_node.push_data_to_deque(imu_data.quat_w.cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0], imu_data.ang_vel_b.cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0], imu_data.lin_acc_b.cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0])
+                            print(f"{imu_data=}")
                     except Exception as e:
                         print(e)
                     try:

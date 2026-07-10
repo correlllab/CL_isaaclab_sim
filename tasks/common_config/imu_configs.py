@@ -17,6 +17,7 @@ class ImuBaseCfg:
         #    data_types = ["rgb"]
 
         return ImuCfg(
+            update_period=0.02,
             prim_path=prim_path,
             debug_vis=True
         )

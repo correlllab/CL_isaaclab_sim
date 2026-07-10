@@ -1,4 +1,3 @@
-#i cant even lie its like miraculous this cmake works
 cmake_minimum_required(VERSION 3.18)
 project(correll-ros2-cloud LANGUAGES CXX)
 
@@ -11,18 +10,18 @@ find_package(pybind11 CONFIG REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
-set(ISAAC_SIM_ROOT /isaac-sim)
+#set(ISAAC_SIM_ROOT /isaac-sim)
 set(PYBIND11_PYTHON_VERSION "3.11")
 
 file(GLOB_RECURSE ROS2_HEADERS /opt/ros/jazzy/include//*.h*)
 
 set(CORRELL_COMMON_INCLUDE
-  /workspace/isaaclab/mateo_ws/unitree_sim_isaaclab/src/cpp/correll-common/include
+  /workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-common/include
 )
 
-set(CUDA_INCLUDE
-  ${ISAAC_SIM_ROOT}/kit/python/lib/python3.11/site-packages/nvidia/cu13/include
-)
+#set(CUDA_INCLUDE
+#  ${ISAAC_SIM_ROOT}/kit/python/lib/python3.11/site-packages/nvidia/cu13/include
+#)
 
 add_library(${PROJECT_NAME} SHARED
   src/Ros2PointCloudNode.cpp
@@ -33,8 +32,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     include
     ${CORRELL_COMMON_INCLUDE}
     ${Python3_INCLUDE_DIRS}
-    ${CUDA_INCLUDE}
-    /isaac-sim/kit/python/lib/python3.11/site-packages/triton/backends/nvidia/include
+    #${CUDA_INCLUDE}
+    #/isaac-sim/kit/python/lib/python3.11/site-packages/triton/backends/nvidia/include
     /opt/ros/jazzy/include/rclcpp
     /opt/ros/jazzy/include/rcl_interfaces
     /opt/ros/jazzy/include/rosidl_runtime_cpp
@@ -62,7 +61,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     sensor_msgs::sensor_msgs
     std_msgs::std_msgs
     rclcpp::rclcpp
-    /isaac-sim/kit/python/lib/python3.11/site-packages/nvidia/cu13/lib/libcudart.so.13
+    #/isaac-sim/kit/python/lib/python3.11/site-packages/nvidia/cu13/lib/libcudart.so.13
 )
 
 

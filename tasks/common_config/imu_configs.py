@@ -27,5 +27,5 @@ class ImuPresets:
 
     @classmethod
     def livox_imu(cls) -> ImuCfg:
-        return ImuBaseCfg.get_imu_cfg("/World/envs/env_.*/Robot/imu_link")
+        return ImuBaseCfg.get_imu_cfg("/World/envs/env_.*/Robot/lidar_link")
 

@@ -73,7 +73,7 @@ void Ros2PointCloudNode::ReaderThread(std::string topic) {
     msg.fields = {x, y, z};
 
     std::vector<unsigned char> buffer(4 * latest.numElements);
-    cudaMemcpy(buffer.data(), (void*)latest.dataPtr, (4 * latest.numElements), cudaMemcpyDeviceToHost);
+    std::memcpy(buffer.data(), (void*)latest.dataPtr, (4 * latest.numElements));
     msg.data = std::move(buffer);
 
     mPublisherMap[topic]->publish(msg);

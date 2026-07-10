@@ -6,6 +6,7 @@
 import os
 import asyncio
 
+import traceback
 project_root = os.path.dirname(os.path.abspath(__file__))
 os.environ["PROJECT_ROOT"] = project_root
 
@@ -494,13 +495,9 @@ def main():
         # use torch.inference_mode() and exception suppression
 
         ros2_camera_node_py.spin_rclcpp()
-        camera_node = ros2_camera_node_py.ros2_camera_node(["/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "/realsense/left_hand/color/image_raw/compressed"])
-        cloud_node = ros2_point_cloud_node_py.ros2_point_cloud_node(["/lidar/first_link", "/lidar/second_link"])
+        camera_node = ros2_camera_node_py.ros2_camera_node(["/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "/realsense/right_hand/aligned_depth_to_color/image_raw/compressed","/realsense/left_hand/color/image_raw/compressed", "/realsense/right_hand/color/image_raw/compressed"])
+        cloud_node = ros2_point_cloud_node_py.ros2_point_cloud_node(["/lidar/first_link"])
         imu_node = ros2_imu_node_py.ros2_imu_node("/imu/base_link")
-        import PIL
-        from torchvision import transforms
-        transform = transforms.ToPILImage()
-        transform2 = transforms.PILToTensor()
         with contextlib.suppress(KeyboardInterrupt), torch.inference_mode():
 
             while simulation_app.is_running() and controller.is_running:
@@ -515,162 +512,57 @@ def main():
                         print(f"Failed to get env state: {e}")
                         raise e
                     try:
-                        pass
-                        #import numpy as np
-                        rgb_data = env.scene['left_wrist_camera']._data.output['rgb'].reshape((640, 480, 3))
-                        #rgb_pil = transform(rgb_data.cpu().numpy())
-                        #rgb_data = transform2(rgb_pil.convert("RGB")).reshape((640, 480, 3)).to("cuda")
-                        depth_data = env.scene['left_wrist_camera']._data.output['distance_to_image_plane'].reshape((640,480, 1))
+                        cloud_data = env.scene['lidar']._data.ray_hits_w.flatten().cpu()
+                        cloud_node.push_data_to_deque(cloud_data.data_ptr(), cloud_data.shape[0], "/lidar/first_link")
+                    except Exception as e:
+                        print(f"faled to publish cloud data")
+
+                    try:
+                        imu_data = env.scene['imu']._data
+                        imu_node.push_data_to_deque(imu_data.quat_w.to(torch.float).cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0], imu_data.ang_vel_b.to(torch.float).tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0], imu_data.lin_acc_b.to(torch.float).tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0])
+                        print(f"{imu_data=}")
+                    except Exception as e:
+                        print(e)
+                    try:
+
+                        rgb_data = env.scene['left_wrist_camera']._data.output['rgb'].reshape((3, 480, 640)).cpu()
+                        camera_node.push_data_to_deque(rgb_data.data_ptr(), rgb_data.shape[-1], rgb_data.shape[-2], "/realsense/left_hand/color/image_raw/compressed", "INTERLEAVED")
+                    except Exception as e:
+                        print(e)
+
+                    try:
+
+                        rgb_data = env.scene['right_wrist_camera']._data.output['rgb'].reshape((3, 480, 640)).cpu()
+                        camera_node.push_data_to_deque(rgb_data.data_ptr(), rgb_data.shape[-1], rgb_data.shape[-2], "/realsense/right_hand/color/image_raw/compressed", "INTERLEAVED")
+                    except Exception as e:
+                        print(e)
+
+                    try:
+
+                        depth_data = env.scene['left_wrist_camera']._data.output['distance_to_image_plane'].reshape((1, 480, 640)).cpu()
                         valid_mask = torch.isfinite(depth_data)
                         valid_values = depth_data[valid_mask]
                         vmin, vmax = torch.min(valid_values), torch.max(valid_values)
                         depth_clean = torch.where(valid_mask, depth_data, vmin)
                         normalized = (depth_clean - vmin) / (vmax - vmin)
                         depth_u8 = (normalized * 255).to(torch.uint8)
-                        print(rgb_data)
-                        print(depth_data)
-                        print(rgb_data.shape)
-                        print(depth_data.shape)
-                        camera_node.push_data_to_deque(rgb_data.data_ptr(), rgb_data.shape[0], rgb_data.shape[1], "/realsense/left_hand/color/image_raw/compressed", "INTERLEAVED")
-                        camera_node.push_data_to_deque(depth_u8.data_ptr(), depth_u8.shape[0], depth_u8.shape[1], "/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "PLANAR")
-                        #print(env.scene['left_wrist_camera']._data.output['rgb'])
-                        #print(env.scene['left_wrist_camera']._data.output['rgb'].shape)
-                        #left_wrist_camera_color_tensor = env.scene['left_wrist_camera']._data.output['rgb'].reshape(480, 640, 3)
-
-                        #right_wrist_camera_color_tensor = env.scene['right_wrist_camera']._data.output['rgb'].reshape(480, 640, 3)
-                        #left_wrist_camera_depth_tensor = env.scene['left_wrist_camera']._data.output['distance_to_image_plane'].reshape(480, 640, 1)
-
-                        #right_wrist_camera_depth_tensor = env.scene['right_wrist_camera']._data.output['distance_to_image_plane'].reshape(480, 640, 1)
-
-                        #valid_mask = torch.isfinite(left_wrist_camera_depth_tensor)
-                        #valid_values = left_wrist_camera_depth_tensor[valid_mask]
-                        #vmin, vmax = torch.min(valid_values), torch.max(valid_values)
-                        #depth_clean = torch.where(valid_mask, left_wrist_camera_depth_tensor, vmin)
-                        #normalized = (depth_clean - vmin) / (vmax - vmin)
-                        #left_wrist_camera_depth_tensor = (normalized * 255).type(torch.uint8)
-                        #
-                        #left_depth_ptr = left_wrist_camera_depth_tensor.data_ptr()
-                        #left_depth_height = left_wrist_camera_depth_tensor.shape[0]
-                        #left_depth_width = left_wrist_camera_depth_tensor.shape[1]
-                        #left_color_ptr = left_wrist_camera_color_tensor.data_ptr()
-                        #left_height = left_wrist_camera_color_tensor.shape[0]
-                        #left_width = left_wrist_camera_color_tensor.shape[1]
-
-                        #valid_mask = torch.isfinite(right_wrist_camera_depth_tensor)
-                        #valid_values = right_wrist_camera_depth_tensor[valid_mask]
-                        #vmin, vmax = torch.min(valid_values), torch.max(valid_values)
-                        #depth_clean = torch.where(valid_mask, right_wrist_camera_depth_tensor, vmin)
-                        #normalized = (depth_clean - vmin) / (vmax - vmin)
-                        #right_wrist_camera_depth_tensor = (normalized * 255).type(torch.uint8)
-
-                        #right_color_ptr = right_wrist_camera_color_tensor.data_ptr()
-                        #right_height = right_wrist_camera_color_tensor.shape[0]
-                        #right_width = right_wrist_camera_color_tensor.shape[1]
-
-                        #right_depth_ptr = right_wrist_camera_depth_tensor.data_ptr()
-                        #right_depth_height = right_wrist_camera_depth_tensor.shape[0]
-                        #right_depth_width = right_wrist_camera_depth_tensor.shape[1]
-                        ##to_numpy = raw_depth_tensor.cpu().numpy()
-                        ##img = Image.fromarray((to_numpy * 255).astype(np.uint8))
-
-                        ##img.save("test_deph2.png")
-                        ##valid_mask = torch.isfinite(raw_depth_tensor)
-                        ##valid_values = raw_depth_tensor[valid_mask]
-                        ##vmin, vmax = torch.min(valid_values), torch.max(valid_values)
-                        ##depth_clean = torch.where(valid_mask, raw_depth_tensor, vmin)
-                        ##normalized = (depth_clean - vmin) / (vmax - vmin)
-                        ##depth_u8 = (normalized * 255).type(torch.uint8)
-                        ####print(depth_u8)
-                        ##depth_ptr = depth_u8.data_ptr()
-                        ##depth_width = depth_u8.shape[1]
-                        ##depth_height = depth_u8.shape[0]
-                        #ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", left_depth_ptr, left_depth_width, left_depth_height)
-                        ##print(depth_u8.shape)
-                        ##print(depth_u8.dtype)
-                        ##print(f"{depth_u8=}")
-                        ##depth_u8 = torch.squeeze(depth_u8, axis=-1)
-                        ###image = Image.fromarray(depth_u8)
-                        ####image.save("test_depth.png")
-                        ###print(f"{raw_depth_tensor.shape=}")
-                        ##depth_ptr = depth_u8.data_ptr()
-                        ##depth_width = depth_u8.shape[1]
-                        ##depth_height = depth_u8.shape[0]
-                        ##ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/right_hand/color/image_raw/compressed", ptr2, width2, height2)
-                        #ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/right_hand/aligned_depth_to_color/image_raw/compressed", right_depth_ptr, right_depth_width, right_depth_height)
-                        #ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/left_hand/color/image_raw/compressed", left_color_ptr, left_width, left_height)
-                        #ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/right_hand/color/image_raw/compressed", right_color_ptr, right_width, right_height)
-                        ##ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", depth_ptr, depth_width, depth_height)
-
-
-
-                        ##raw_depth_tensor = env.scene['right_wrist_camera']._data.output['distance_to_image_plane'].reshape(480, 640, 1)
-
-                        ##valid_mask = torch.isfinite(raw_depth_tensor)
-                        ##valid_values = raw_depth_tensor[valid_mask]
-                        ##vmin, vmax = torch.min(valid_values), torch.max(valid_values)
-                        ##depth_clean = torch.where(valid_mask, raw_depth_tensor, vmin)
-                        ##normalized = (depth_clean - vmin) / (vmax - vmin)
-                        ##depth_u8 = (normalized * 255).type(torch.uint8)
-                        ##depth_u8 = torch.squeeze(depth_u8, axis=-1)
-                        ##depth_ptr = depth_u8.data_ptr()
-                        ##depth_width = depth_u8.shape[1]
-                        ##depth_height = depth_u8.shape[0]
-
-                        #print(f"{env.scene['livox_imu']._data=}")
-                        #print(f"{env.scene['livox_imu']._data.quat_w=}")
-                        #print(f"{env.scene['livox_imu']._data.lin_vel_b=}")
-                        #print(f"{env.scene['livox_imu']._data.lin_acc_b=}")
-                        #print(f"{env.scene['livox_imu']._data.ang_vel_b=}")
-                        #print(f"{env.scene['livox_imu']._data.ang_acc_b=}")
-
-
-                        #print(f"{env.scene['livox_imu']._data.quat_w.shape=}")
-                        #print(f"{env.scene['livox_imu']._data.lin_vel_b.shape=}")
-                        #print(f"{env.scene['livox_imu']._data.lin_acc_b.shape=}")
-                        #print(f"{env.scene['livox_imu']._data.ang_vel_b.shape=}")
-                        #print(f"{env.scene['livox_imu']._data.ang_acc_b.shape=}")
-
-                        #print("\n\n\n")
-
-                        #print(f"{env.scene['livox_imu']._data.quat_w.cpu().numpy().tolist()=}")
-                        #print(f"{env.scene['livox_imu']._data.lin_vel_b.flatten().cpu().numpy()=}")
-                        #print(f"{env.scene['livox_imu']._data.lin_acc_b.flatten().cpu().numpy()=}")
-                        #print(f"{env.scene['livox_imu']._data.ang_vel_b.flatten().cpu().numpy()=}")
-                        #print(f"{env.scene['livox_imu']._data.ang_acc_b.flatten().cpu().numpy()=}")
-
-
-                        #orient_quat = env.scene['livox_imu']._data.quat_w.flatten().cpu().numpy()
-                        #orient_covar = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-
-                        #ang_vel = env.scene['livox_imu']._data.ang_vel_b.flatten().cpu().numpy()
-                        #ang_vel_covar = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-
-                        #lin_acc = env.scene['livox_imu']._data.lin_acc_b.flatten().cpu().numpy()
-                        #lin_acc_covar = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-                        #ros2_imu_publisher.publish_imu_data(orient_quat, orient_covar, ang_vel, ang_vel_covar, lin_acc, lin_acc_covar)
-                        ##ang vel, lin acc
-
-
-                        #print(f"{env.scene['livox_lidar']._data=}")
-                        #print(f"{env.scene['livox_lidar']._data.ray_hits_w=}")
-                        #print(f"{env.scene['livox_lidar']._data.ray_hits_w.shape=}")
-                        #print(f"{torch.isfinite(env.scene['livox_lidar']._data.ray_hits_w)=}")
-
-                        ##valid_mask = torch.isfinite(env.scene['livox_lidar']._data.ray_hits_w)
-                        ##valid_values = env.scene['livox_lidar']._data.ray_hits_w[valid_mask] 
-                        ##print(f"{valid_values=}")
-                        ##print(f"{valid_values.shape=}")
-                        ##print(f"{valid_values.device=}")
-                        ##print(f"{valid_values.data_ptr()=}")
-                        ##breakpoint()
-
-
-                        ###ros2_nvjpeg_interface.write_to_publish_thread_safe("/realsense/right_hand/aligned_depth_to_color/image_raw/compressed", depth_ptr, depth_width, depth_height)
+                        camera_node.push_data_to_deque(depth_u8.data_ptr(), depth_u8.shape[-1], depth_u8.shape[-2], "/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "INTERLEAVED")
                     except Exception as e:
-                        import traceback
-                        traceback.print_exc()
-                        breakpoint()
+                        print(e)
 
+                    try:
+
+                        depth_data = env.scene['right_wrist_camera']._data.output['distance_to_image_plane'].reshape((1, 480, 640)).cpu()
+                        valid_mask = torch.isfinite(depth_data)
+                        valid_values = depth_data[valid_mask]
+                        vmin, vmax = torch.min(valid_values), torch.max(valid_values)
+                        depth_clean = torch.where(valid_mask, depth_data, vmin)
+                        normalized = (depth_clean - vmin) / (vmax - vmin)
+                        depth_u8 = (normalized * 255).to(torch.uint8)
+                        camera_node.push_data_to_deque(depth_u8.data_ptr(), depth_u8.shape[-1], depth_u8.shape[-2], "/realsense/right_hand/aligned_depth_to_color/image_raw/compressed", "INTERLEAVED")
+                    except Exception as e:
+                        print(e)
+                     
                     try:
                     # sim_state = json.dumps(sim_state)
                         sim_state_dds.write_sim_state_data(sim_state)
@@ -855,28 +747,3 @@ if __name__ == "__main__":
         
         # Force exit
         os._exit(0)
-
-# python sim_main.py --device cpu  --enable_cameras  --task  Isaac-PickPlace-Cylinder-G129-Dex1-Joint   --enable_dex1_dds --robot_type g129
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-Cylinder-G129-Dex3-Joint    --enable_dex3_dds --robot_type g129
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-Cylinder-G129-Inspire-Joint    --enable_inspire_dds --robot_type g129
-
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-RedBlock-G129-Dex1-Joint     --enable_dex1_dds --robot_type g129
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-RedBlock-G129-Dex3-Joint    --enable_dex3_dds --robot_type g129
-# python sim_main.py --device cpu  --enable_cameras  --task  Isaac-PickPlace-RedBlock-G129-Inspire-Joint    --enable_inspire_dds --robot_type g129
-
-
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-G129-Dex1-Joint     --enable_dex1_dds --robot_type g129
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-G129-Dex3-Joint     --enable_dex3_dds --robot_type g129
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-G129-Inspire-Joint     --enable_inspire_dds --robot_type g129
-
-
-
-
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Move-Cylinder-G129-Dex1-Wholebody  --robot_type g129 --enable_dex1_dds 
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Move-Cylinder-G129-Dex3-Wholebody  --robot_type g129 --enable_dex3_dds 
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Move-Cylinder-G129-Inspire-Wholebody  --robot_type g129 --enable_inspire_dds 
-
-
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-Cylinder-H12-27dof-Inspire-Joint  --enable_inspire_dds --robot_type h1_2
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-PickPlace-RedBlock-H12-27dof-Inspire-Joint  --enable_inspire_dds --robot_type h1_2
-# python sim_main.py --device cpu  --enable_cameras  --task Isaac-Stack-RgyBlock-H12-27dof-Inspire-Joint --enable_inspire_dds --robot_type h1_2

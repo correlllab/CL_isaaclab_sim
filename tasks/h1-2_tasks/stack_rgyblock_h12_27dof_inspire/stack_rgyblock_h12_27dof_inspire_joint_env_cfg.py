@@ -52,7 +52,7 @@ class ObjectTableSceneCfg(TableRedGreenYellowBlockSceneCfg):
     correll_cam_0 = CameraPresets.correll_camera_0()
     #correll_cam_1 = CameraPresets.correll_camera_1()
     #correll_cam_2 = CameraPresets.correll_camera_2()
-    #livox_imu = ImuPresets.livox_imu()
+    imu = ImuPresets.livox_imu()
 
     lidar = RayCasterPresets.livox_lidar()
 

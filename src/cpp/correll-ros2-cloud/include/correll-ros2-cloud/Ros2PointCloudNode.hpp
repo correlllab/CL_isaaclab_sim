@@ -8,7 +8,7 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/msg/point_field.hpp>
 
-#include <cuda_runtime.h>
+//#include <cuda_runtime.h>
 
 struct PointCloudData {
   long dataPtr, numElements;

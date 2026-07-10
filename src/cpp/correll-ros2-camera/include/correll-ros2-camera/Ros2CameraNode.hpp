@@ -2,7 +2,8 @@
 #include <correll-common/ThreadPool.hpp>
 #include <correll-common/ThreadSafeDeque.hpp>
 
-#include <correll-ros2-camera/NvjpegEncoder.hpp>
+//#include <correll-ros2-camera/NvjpegEncoder.hpp>
+#include <correll-ros2-camera/TurboEncoder.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/header.hpp>
@@ -54,7 +55,7 @@ class Ros2CameraNode : public rclcpp::Node {
 
 
     std::unordered_map<std::string, std::unique_ptr<ImageDeque>> mDequeMap;
-    std::unordered_map<std::string, std::unique_ptr<NvjpegEncoder>> mEncoderMap;
+    std::unordered_map<std::string, std::unique_ptr<TurboEncoder>> mEncoderMap;
     std::unordered_map<std::string, rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr> mPublisherMap;
     //ImageDeque mDeque;
     ThreadPool mPool{2};

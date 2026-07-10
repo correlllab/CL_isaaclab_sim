@@ -9,10 +9,10 @@ Ros2CameraNode::Ros2CameraNode(std::vector<std::string> topics) :rclcpp::Node("c
 
     mDequeMap.try_emplace(topic, std::make_unique<ImageDeque>());
     if (topic.find("depth") != std::string::npos) {
-      mEncoderMap.try_emplace(topic, std::make_unique<NvjpegEncoder>(DataType::DEPTH));
+      mEncoderMap.try_emplace(topic, std::make_unique<TurboEncoder>(DataType::DEPTH));
     
     } else {
-      mEncoderMap.try_emplace(topic, std::make_unique<NvjpegEncoder>(DataType::RGB));
+      mEncoderMap.try_emplace(topic, std::make_unique<TurboEncoder>(DataType::RGB));
     
     }
 
@@ -38,6 +38,7 @@ void Ros2CameraNode::PushDataToDeque(long dataPtr, int width, int height, std::s
 
 void Ros2CameraNode::ReaderThread(std::string topic) {
   while (true) {
+
 
     ImageData latest = mDequeMap[topic]->PopBack();
     std::vector<unsigned char> buffer = mEncoderMap[topic]->Encode(latest);

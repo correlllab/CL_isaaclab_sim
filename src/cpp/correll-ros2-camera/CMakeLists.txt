@@ -11,36 +11,47 @@ find_package(pybind11 CONFIG REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
-set(ISAAC_SIM_ROOT /isaac-sim)
+#set(ISAAC_SIM_ROOT /isaac-sim)
 set(PYBIND11_PYTHON_VERSION "3.11")
 
-set(NVJPEG_LIB
-  ${ISAAC_SIM_ROOT}/extscache/omni.sensors.nv.camera-1.0.0+69cbf6ad.lx64.r/bin/libnvjpeg.so
+set(LIBJPEG_TURBO_LIB
+  /workspace/hams/isaac/libjpeg-turbo/build/libturbojpeg.so
 )
 
-file(GLOB_RECURSE ROS2_HEADERS /opt/ros/jazzy/include//*.h*)
-
-set(CUDA_INCLUDE
-  ${ISAAC_SIM_ROOT}/kit/python/lib/python3.11/site-packages/nvidia/cu13/include
+set(LIBJPEG_TURBO_INCLUDE
+  /workspace/hams/isaac/libjpeg-turbo/src
 )
+
+#set(NVJPEG_LIB
+#  ${ISAAC_SIM_ROOT}/extscache/omni.sensors.nv.camera-1.0.0+69cbf6ad.lx64.r/bin/libnvjpeg.so
+#)
+
+#file(GLOB_RECURSE ROS2_HEADERS /opt/ros/jazzy/include//*.h*)
+
+#set(CUDA_INCLUDE
+#  ${ISAAC_SIM_ROOT}/kit/python/lib/python3.11/site-packages/nvidia/cu13/include
+#)
 
 set(CORRELL_COMMON_INCLUDE
   /workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-common/include
 )
 
 add_library(${PROJECT_NAME} SHARED
-  src/NvjpegEncoder.cpp
+  #src/NvjpegEncoder.cpp
   src/Ros2CameraNode.cpp
+  src/TurboEncoder.cpp
 )
+
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC   
     include
     ${CORRELL_COMMON_INCLUDE}
     ${Python3_INCLUDE_DIRS}
-    ${CUDA_INCLUDE}
-    /isaac-sim/kit/python/lib/python3.11/site-packages/nvidia/cu13/include
-    /isaac-sim/kit/python/lib/python3.11/site-packages/triton/backends/nvidia/include
+    #${CUDA_INCLUDE}
+    /workspace/hams/isaac/libjpeg-turbo/src
+    #/isaac-sim/kit/python/lib/python3.11/site-packages/nvidia/cu13/include
+    #/isaac-sim/kit/python/lib/python3.11/site-packages/triton/backends/nvidia/include
     /opt/ros/jazzy/include/rclcpp
     /opt/ros/jazzy/include/rcl_interfaces
     /opt/ros/jazzy/include/rosidl_runtime_cpp
@@ -65,8 +76,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 target_link_libraries(${PROJECT_NAME} PUBLIC 
     pybind11::module
-    ${NVJPEG_LIB}
-    /isaac-sim/kit/python/lib/python3.11/site-packages/nvidia/cu13/lib/libcudart.so.13
+    #${NVJPEG_LIB}
+    /workspace/hams/isaac/libjpeg-turbo/build/libturbojpeg.so
+    #/isaac-sim/kit/python/lib/python3.11/site-packages/nvidia/cu13/lib/libcudart.so.13
     sensor_msgs::sensor_msgs
     std_msgs::std_msgs
     rclcpp::rclcpp
@@ -74,11 +86,11 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 
 #for debugging, omitted just to be lightweight
-#pybind11_add_module(nvjpeg_encoder_py
-#  src/NvjpegEncoder.cpp
+#pybind11_add_module(turbo_encoder_py
+#  src/TurboEncoder.cpp
 #)
 #
-#target_link_libraries(nvjpeg_encoder_py PRIVATE
+#target_link_libraries(turbo_encoder_py PRIVATE
 #    correll-ros2-camera
 #)
 

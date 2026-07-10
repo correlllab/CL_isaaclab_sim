@@ -29,7 +29,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
         prim_path="{ENV_REGEX_NS}/Floor",
         spawn=sim_utils.CuboidCfg(
             size=(ROOM_SIZE_X, ROOM_SIZE_Y, WALL_THICKNESS),
-            collision_props=sim_utils.CollisionPropertiesCfg(),
+            collision_props=sim_utils.CollisionPropertiesCfg(collision_enabled=True),
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 rigid_body_enabled=False,
              ),
@@ -46,7 +46,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
         prim_path="{ENV_REGEX_NS}/Wall1",
         spawn=sim_utils.CuboidCfg(
             size=(WALL_THICKNESS, ROOM_SIZE_Y, ROOM_HEIGHT),
-            collision_props=sim_utils.CollisionPropertiesCfg(),
+            collision_props=sim_utils.CollisionPropertiesCfg(collision_enabled=True),
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 rigid_body_enabled=False,
             ),
@@ -63,7 +63,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
         prim_path="{ENV_REGEX_NS}/Wall2",
         spawn=sim_utils.CuboidCfg(
             size=(WALL_THICKNESS, ROOM_SIZE_Y, ROOM_HEIGHT),
-            collision_props=sim_utils.CollisionPropertiesCfg(),
+            collision_props=sim_utils.CollisionPropertiesCfg(collision_enabled=True),
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 rigid_body_enabled=False,
             ),
@@ -79,7 +79,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
         prim_path="{ENV_REGEX_NS}/Wall3",
         spawn=sim_utils.CuboidCfg(
             size=(ROOM_SIZE_X, WALL_THICKNESS, ROOM_HEIGHT),
-            collision_props=sim_utils.CollisionPropertiesCfg(),
+            collision_props=sim_utils.CollisionPropertiesCfg(collision_enabled=True),
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 rigid_body_enabled=False,
             ),
@@ -96,7 +96,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
         prim_path="{ENV_REGEX_NS}/Wall4",
         spawn=sim_utils.CuboidCfg(
             size=(ROOM_SIZE_X, WALL_THICKNESS, ROOM_HEIGHT),
-            collision_props=sim_utils.CollisionPropertiesCfg(),
+            collision_props=sim_utils.CollisionPropertiesCfg(collision_enabled=True),
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 rigid_body_enabled=False,
             ),
@@ -158,7 +158,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
             ),
             mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
             collision_props=sim_utils.CollisionPropertiesCfg(
-                collision_enabled=False,
+                collision_enabled=True,
                 contact_offset=0.01,
                 rest_offset=0.0
             ),
@@ -190,7 +190,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
             ),
             mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
             collision_props=sim_utils.CollisionPropertiesCfg(
-                collision_enabled=False,
+                collision_enabled=True,
                 contact_offset=0.01,
                 rest_offset=0.0
             ),
@@ -221,7 +221,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
             ),
             mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
             collision_props=sim_utils.CollisionPropertiesCfg(
-                collision_enabled=False,
+                collision_enabled=True,
                 contact_offset=0.01,
                 rest_offset=0.0
             ),
@@ -253,7 +253,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
             ),
             mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
             collision_props=sim_utils.CollisionPropertiesCfg(
-                collision_enabled=False,
+                collision_enabled=True,
                 contact_offset=0.01,
                 rest_offset=0.0
             ),
@@ -285,7 +285,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
             ),
             mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
             collision_props=sim_utils.CollisionPropertiesCfg(
-                collision_enabled=False,
+                collision_enabled=True,
                 contact_offset=0.01,
                 rest_offset=0.0
             ),
@@ -316,7 +316,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
             ),
             mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
             collision_props=sim_utils.CollisionPropertiesCfg(
-                collision_enabled=False,
+                collision_enabled=True,
                 contact_offset=0.01,
                 rest_offset=0.0
             ),

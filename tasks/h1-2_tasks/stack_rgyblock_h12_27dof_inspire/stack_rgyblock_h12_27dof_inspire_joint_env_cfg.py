@@ -54,7 +54,7 @@ class ObjectTableSceneCfg(TableRedGreenYellowBlockSceneCfg):
     #correll_cam_2 = CameraPresets.correll_camera_2()
     #livox_imu = ImuPresets.livox_imu()
 
-    #livox_lidar = RayCasterPresets.livox_lidar()
+    lidar = RayCasterPresets.livox_lidar()
 
 ##
 # MDP settings

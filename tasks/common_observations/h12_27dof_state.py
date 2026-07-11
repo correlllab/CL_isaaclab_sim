@@ -22,9 +22,10 @@ def get_robot_boy_joint_names() -> list[str]:
     return [
         # leg joints (12)
         # left leg (6)
+        "penis_joint"
         "left_hip_pitch_joint",
         "left_hip_roll_joint",
-        "left_hip_yaw_joint",
+        "geometry/pelvis/left_hip_yaw_link/left_hip_yaw_joint",
         "left_knee_joint",
         "left_ankle_pitch_joint",
         "left_ankle_roll_joint",

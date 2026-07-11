@@ -59,22 +59,22 @@ def reset_object_estimate(
     green_done_height = (green_block_height > min_height)
     green_done = green_done_x and green_done_y and green_done_height
 
-    print(f"{red_done_x=}")
-    print(f"{red_done_y=}")
-    print(f"{yellow_done_x=}")
-    print(f"{yellow_done_y=}")
-    print(f"{green_done_x=}")
-    print(f"{green_done_y=}")
+    #print(f"{red_done_x=}")
+    #print(f"{red_done_y=}")
+    #print(f"{yellow_done_x=}")
+    #print(f"{yellow_done_y=}")
+    #print(f"{green_done_x=}")
+    #print(f"{green_done_y=}")
     done = (red_done and yellow_done and green_done)
     #done = red_done and yellow_done and green_done
 
 
-    print(f"{done}=")
+    #print(f"{done}=")
 
-    if done:
-        print("RESETTTTT!!!!! WORKSSS!!!!")
+    #if done:
+    #    print("RESETTTTT!!!!! WORKSSS!!!!")
 
-    else:
-        print("nOT DONE")
+    #else:
+    #    print("nOT DONE")
 
     return not done

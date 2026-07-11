@@ -18,11 +18,13 @@ import signal
 import torch
 import gymnasium as gym
 from pathlib import Path
+import time
+from time import perf_counter
 
 # Isaac Lab AppLauncher
 from isaaclab.app import AppLauncher
 
-from dds.dds_create import create_dds_objects,create_dds_objects_replay
+#from dds.dds_create import create_dds_objects,create_dds_objects_replay
 # add command line arguments
 parser = argparse.ArgumentParser(description="Unitree Simulation")
 parser.add_argument("--task", type=str, default="Isaac-PickPlace-G129-Head-Waist-Fix", help="task name")
@@ -458,50 +460,25 @@ def main():
         controller.start()
         print("========= start controller success =========")
         
-        # main loop - execute in main thread to support rendering
-        last_stats_time = time.time()
-        loop_start_time = time.time()
-        loop_count = 0
-        last_loop_time = time.time()
-        recent_loop_times = []  # for calculating moving average frequency
-        
-        
-        reward_interval = max(1, args_cli.reward_interval)
-        import isaacsim.core.utils.extensions as extensions_utils
+        ## main loop - execute in main thread to support rendering
+        #last_stats_time = time.time()
+        #loop_start_time = time.time()
+        #loop_count = 0
+        #last_loop_time = time.time()
+        #recent_loop_times = []  # for calculating moving average frequency
+        #
+        #
+        #reward_interval = max(1, args_cli.reward_interval)
 
-        #ros2_nvjpeg_compressed_image_publisher_py.spin_rclcpp()
-        #ros2_nvjpeg_interface = ros2_nvjpeg_compressed_image_publisher_py.ros2_nvjpeg_compressed_image_publisher(["/realsense/left_hand/color/image_raw/compressed", "/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "/realsense/right_hand/color/image_raw/compressed", "/realsense/right_hand/aligned_depth_to_color/image_raw/compressed"])
-
-        #simulation_app.app.get_extension_manager().add_path("/workspace/isaaclab/kit-extension-template-cpp/_build/linux-x86_64/release/exts")
-        #simulation_app.app.get_extension_manager().refresh_registry()
-        #exts_utils.enable_extension("correll.ros2.livox.lidar")
-
-        #import omni.graph.core as og
-        #try:
-        #    keys = og.Controller.Keys
-        #    graph_handle, list_of_nodes, _, _ = og.Controller.edit(
-        #        {"graph_path": "/action_graph3", "evaluator_name": "execution"},
-        #        {
-        #            keys.CREATE_NODES: [("tick", "omni.graph.action.OnPlaybackTick"), ("livox", "cl.ros2.livox.ClRos2LivoxPy"), ("realsense", "cl.ros2.realsense.ClRos2RealsensePy")],
-        #            keys.CONNECT: [("tick.outputs:tick", "livox.inputs:execution"), ("tick.outputs:tick", "realsense.inputs:execution")],
-        #        },
-        #    )
-        #except:
-        #    import traceback
-        #    traceback.print_exc()
-
-        #ros2_imu_publisher = ros2_livox_imu_publisher_py.ros2_livox_imu_publisher("/test_imu")
-        # use torch.inference_mode() and exception suppression
-
-        ros2_camera_node_py.spin_rclcpp()
-        camera_node = ros2_camera_node_py.ros2_camera_node(["/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "/realsense/right_hand/aligned_depth_to_color/image_raw/compressed","/realsense/left_hand/color/image_raw/compressed", "/realsense/right_hand/color/image_raw/compressed"])
-        cloud_node = ros2_point_cloud_node_py.ros2_point_cloud_node(["/lidar/first_link"])
-        imu_node = ros2_imu_node_py.ros2_imu_node("/imu/base_link")
+        #ros2_camera_node_py.spin_rclcpp()
+        #camera_node = ros2_camera_node_py.ros2_camera_node(["/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "/realsense/right_hand/aligned_depth_to_color/image_raw/compressed","/realsense/left_hand/color/image_raw/compressed", "/realsense/right_hand/color/image_raw/compressed"])
+        #cloud_node = ros2_point_cloud_node_py.ros2_point_cloud_node(["/lidar/first_link"])
+        #imu_node = ros2_imu_node_py.ros2_imu_node("/imu/base_link")
         with contextlib.suppress(KeyboardInterrupt), torch.inference_mode():
 
             while simulation_app.is_running() and controller.is_running:
-                current_time = time.time()
-                loop_count += 1
+                #current_time = time.time()
+                #loop_count += 1
                 if not args_cli.replay_data:
                     try:
                         env_state = env.scene.get_state()
@@ -510,60 +487,79 @@ def main():
                     except Exception as e:
                         print(f"Failed to get env state: {e}")
                         raise e
-                    try:
-                        cloud_data = env.scene['lidar']._data.ray_hits_w.flatten().cpu()
-                        cloud_node.push_data_to_deque(cloud_data.data_ptr(), cloud_data.shape[0], "/lidar/first_link")
-                    except Exception as e:
-                        print(f"faled to publish cloud data")
+                    #try:
 
-                    try:
+                    #    start = perf_counter()
+                    #    cloud_data = env.scene['lidar']._data.ray_hits_w.flatten().cpu()
+                    #    cloud_node.push_data_to_deque(cloud_data.data_ptr(), cloud_data.shape[0], "/lidar/first_link")
 
-                        imu_data = env.scene['imu']._data
-                        if not imu_data.quat_w[0][0] == 1:
+                    #    imu_node.push_data_to_deque(imu_data.quat_w.cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0], imu_data.ang_vel_b.cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0], imu_data.lin_acc_b.cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0])
+                    #    elapsed = perf_counter() - start
 
-                            imu_node.push_data_to_deque(imu_data.quat_w.cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0], imu_data.ang_vel_b.cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0], imu_data.lin_acc_b.cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0])
-                            print(f"{imu_data=}")
-                    except Exception as e:
-                        print(e)
-                    try:
+                    #    print(f"POINT CLOUD PUBLISHING: {elapsed*1000:.3f} ms")
+                    #except Exception as e:
+                    #    print(f"faled to publish cloud data")
 
-                        rgb_data = env.scene['left_wrist_camera']._data.output['rgb'].reshape((3, 480, 640)).cpu()
-                        camera_node.push_data_to_deque(rgb_data.data_ptr(), rgb_data.shape[-1], rgb_data.shape[-2], "/realsense/left_hand/color/image_raw/compressed", "INTERLEAVED")
-                    except Exception as e:
-                        print(e)
+                    #try:
 
-                    try:
+                    #    imu_data = env.scene['imu']._data
+                    #    if not imu_data.quat_w[0][0] == 1:
+                    #        start = perf_counter()
 
-                        rgb_data = env.scene['right_wrist_camera']._data.output['rgb'].reshape((3, 480, 640)).cpu()
-                        camera_node.push_data_to_deque(rgb_data.data_ptr(), rgb_data.shape[-1], rgb_data.shape[-2], "/realsense/right_hand/color/image_raw/compressed", "INTERLEAVED")
-                    except Exception as e:
-                        print(e)
+                    #        imu_node.push_data_to_deque(imu_data.quat_w.cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0], imu_data.ang_vel_b.cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0], imu_data.lin_acc_b.cpu().tolist()[0], [0, 0, 0, 0, 0, 0, 0, 0, 0])
+                    #        elapsed = perf_counter() - start
+                    #        print(f"IMU PUBLISHING: {elapsed*1000:.3f} ms")
 
-                    try:
+                    #except Exception as e:
+                    #    print(e)
+                    #try:
 
-                        depth_data = env.scene['left_wrist_camera']._data.output['distance_to_image_plane'].reshape((1, 480, 640)).cpu()
-                        valid_mask = torch.isfinite(depth_data)
-                        valid_values = depth_data[valid_mask]
-                        vmin, vmax = torch.min(valid_values), torch.max(valid_values)
-                        depth_clean = torch.where(valid_mask, depth_data, vmin)
-                        normalized = (depth_clean - vmin) / (vmax - vmin)
-                        depth_u8 = (normalized * 255).to(torch.uint8)
-                        camera_node.push_data_to_deque(depth_u8.data_ptr(), depth_u8.shape[-1], depth_u8.shape[-2], "/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "INTERLEAVED")
-                    except Exception as e:
-                        print(e)
 
-                    try:
+                    #    start = perf_counter()
+                    #    rgb_data = env.scene['left_wrist_camera']._data.output['rgb'].reshape((3, 480, 640)).cpu()
+                    #    camera_node.push_data_to_deque(rgb_data.data_ptr(), rgb_data.shape[-1], rgb_data.shape[-2], "/realsense/left_hand/color/image_raw/compressed", "INTERLEAVED")
 
-                        depth_data = env.scene['right_wrist_camera']._data.output['distance_to_image_plane'].reshape((1, 480, 640)).cpu()
-                        valid_mask = torch.isfinite(depth_data)
-                        valid_values = depth_data[valid_mask]
-                        vmin, vmax = torch.min(valid_values), torch.max(valid_values)
-                        depth_clean = torch.where(valid_mask, depth_data, vmin)
-                        normalized = (depth_clean - vmin) / (vmax - vmin)
-                        depth_u8 = (normalized * 255).to(torch.uint8)
-                        camera_node.push_data_to_deque(depth_u8.data_ptr(), depth_u8.shape[-1], depth_u8.shape[-2], "/realsense/right_hand/aligned_depth_to_color/image_raw/compressed", "INTERLEAVED")
-                    except Exception as e:
-                        print(e)
+                    #    elapsed = perf_counter() - start
+                    #    print(f"LEFT_RGB PUBLISHING: {elapsed*1000:.3f} ms")
+                    #except Exception as e:
+                    #    print(e)
+
+                    #try:
+
+                    #    start = perf_counter()
+                    #    rgb_data = env.scene['right_wrist_camera']._data.output['rgb'].reshape((3, 480, 640)).cpu()
+                    #    camera_node.push_data_to_deque(rgb_data.data_ptr(), rgb_data.shape[-1], rgb_data.shape[-2], "/realsense/right_hand/color/image_raw/compressed", "INTERLEAVED")
+
+                    #    elapsed = perf_counter() - start
+                    #    print(f"RIGHT_RGB PUBLISHING: {elapsed*1000:.3f} ms")
+                    #except Exception as e:
+                    #    print(e)
+
+                    #try:
+
+                    #    depth_data = env.scene['left_wrist_camera']._data.output['distance_to_image_plane'].reshape((1, 480, 640)).cpu()
+                    #    valid_mask = torch.isfinite(depth_data)
+                    #    valid_values = depth_data[valid_mask]
+                    #    vmin, vmax = torch.min(valid_values), torch.max(valid_values)
+                    #    depth_clean = torch.where(valid_mask, depth_data, vmin)
+                    #    normalized = (depth_clean - vmin) / (vmax - vmin)
+                    #    depth_u8 = (normalized * 255).to(torch.uint8)
+                    #    camera_node.push_data_to_deque(depth_u8.data_ptr(), depth_u8.shape[-1], depth_u8.shape[-2], "/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "INTERLEAVED")
+                    #except Exception as e:
+                    #    print(e)
+
+                    #try:
+
+                    #    depth_data = env.scene['right_wrist_camera']._data.output['distance_to_image_plane'].reshape((1, 480, 640)).cpu()
+                    #    valid_mask = torch.isfinite(depth_data)
+                    #    valid_values = depth_data[valid_mask]
+                    #    vmin, vmax = torch.min(valid_values), torch.max(valid_values)
+                    #    depth_clean = torch.where(valid_mask, depth_data, vmin)
+                    #    normalized = (depth_clean - vmin) / (vmax - vmin)
+                    #    depth_u8 = (normalized * 255).to(torch.uint8)
+                    #    camera_node.push_data_to_deque(depth_u8.data_ptr(), depth_u8.shape[-1], depth_u8.shape[-2], "/realsense/right_hand/aligned_depth_to_color/image_raw/compressed", "INTERLEAVED")
+                    #except Exception as e:
+                    #    print(e)
                      
                     try:
                     # sim_state = json.dumps(sim_state)
@@ -571,34 +567,34 @@ def main():
                     except Exception as e:
                         print(f"Failed to write sim state: {e}")
                         raise e
-                    try:
-                        reset_pose_cmd = reset_pose_dds.get_reset_pose_command()
-                    except Exception as e:
-                        print(f"Failed to get reset pose command: {e}")
-                        raise e
-                    # Compute current reward values manually if needed for debugging
-                    try:
-                        if (loop_count % reward_interval) == 0:
-                            pass
-                            # current_reward = get_step_reward_value(env)
-                    except Exception as e:
-                        print(f"奖励计算失败: {e}")
-                        pass
+                    #try:
+                    #    reset_pose_cmd = reset_pose_dds.get_reset_pose_command()
+                    #except Exception as e:
+                    #    print(f"Failed to get reset pose command: {e}")
+                    #    raise e
+                    ## Compute current reward values manually if needed for debugging
+                    #try:
+                    #    if (loop_count % reward_interval) == 0:
+                    #        pass
+                    #        # current_reward = get_step_reward_value(env)
+                    #except Exception as e:
+                    #    print(f"奖励计算失败: {e}")
+                    #    pass
                     
-                    if reset_pose_cmd is not None:
-                        try:
-                            reset_category = reset_pose_cmd.get("reset_category")
-                            if (args_cli.enable_wholebody_dds and (reset_category == '1' or reset_category == '2')) or (not args_cli.enable_wholebody_dds and reset_category == '1'):
-                                print("reset object")
-                                env_cfg.event_manager.trigger("reset_object_self", env)
-                                reset_pose_dds.write_reset_pose_command(-1)
-                            elif reset_category == '2' and not args_cli.enable_wholebody_dds:
-                                print("reset all")
-                                env_cfg.event_manager.trigger("reset_all_self", env)
-                                reset_pose_dds.write_reset_pose_command(-1)
-                        except Exception as e:
-                            print(f"Failed to write reset pose command: {e}")
-                            raise e
+                    #if reset_pose_cmd is not None:
+                    #    try:
+                    #        reset_category = reset_pose_cmd.get("reset_category")
+                    #        if (args_cli.enable_wholebody_dds and (reset_category == '1' or reset_category == '2')) or (not args_cli.enable_wholebody_dds and reset_category == '1'):
+                    #            print("reset object")
+                    #            env_cfg.event_manager.trigger("reset_object_self", env)
+                    #            reset_pose_dds.write_reset_pose_command(-1)
+                    #        elif reset_category == '2' and not args_cli.enable_wholebody_dds:
+                    #            print("reset all")
+                    #            env_cfg.event_manager.trigger("reset_all_self", env)
+                    #            reset_pose_dds.write_reset_pose_command(-1)
+                    #    except Exception as e:
+                    #        print(f"Failed to write reset pose command: {e}")
+                    #        raise e
                 else:
                     if action_provider.get_start_loop() and data_idx<len(data_json_list):
                         print(f"data_idx: {data_idx}")
@@ -618,52 +614,52 @@ def main():
                         except Exception as e:
                             print(f"Failed to start replay: {e}")
                             raise e
-                # print(f"env_state: {env_state}")
-                # calculate instantaneous loop time
-                loop_dt = current_time - last_loop_time
-                last_loop_time = current_time
-                recent_loop_times.append(loop_dt)
-                
-                # keep recent 100 loop times
-                if len(recent_loop_times) > 100:
-                    recent_loop_times.pop(0)
-                
-                # execute control step (in main thread, support rendering)
+                ## print(f"env_state: {env_state}")
+                ## calculate instantaneous loop time
+                #loop_dt = current_time - last_loop_time
+                #last_loop_time = current_time
+                #recent_loop_times.append(loop_dt)
+                #
+                ## keep recent 100 loop times
+                #if len(recent_loop_times) > 100:
+                #    recent_loop_times.pop(0)
+                #
+                ## execute control step (in main thread, support rendering)
                 controller.step()
 
-                # print statistics and loop frequency periodically
-                if current_time - last_stats_time >= args_cli.stats_interval:
-                    # calculate while loop execution frequency
-                    elapsed_time = current_time - loop_start_time
-                    loop_frequency = loop_count / elapsed_time if elapsed_time > 0 else 0
-                    
-                    # calculate moving average frequency (based on recent loop times)
-                    if recent_loop_times:
-                        avg_loop_time = sum(recent_loop_times) / len(recent_loop_times)
-                        moving_avg_frequency = 1.0 / avg_loop_time if avg_loop_time > 0 else 0
-                        min_loop_time = min(recent_loop_times)
-                        max_loop_time = max(recent_loop_times)
-                        max_freq = 1.0 / min_loop_time if min_loop_time > 0 else 0
-                        min_freq = 1.0 / max_loop_time if max_loop_time > 0 else 0
-                    else:
-                        moving_avg_frequency = 0
-                        min_freq = max_freq = 0
-                    
-                    print(f"\n=== While loop execution frequency statistics ===")
-                    print(f"loop execution count: {loop_count}")
-                    print(f"running time: {elapsed_time:.2f} seconds")
-                    print(f"overall average frequency: {loop_frequency:.2f} Hz")
-                    print(f"moving average frequency: {moving_avg_frequency:.2f} Hz (last {len(recent_loop_times)} times)")
-                    print(f"frequency range: {min_freq:.2f} - {max_freq:.2f} Hz")
-                    print(f"average loop time: {(elapsed_time/loop_count*1000):.2f} ms")
-                    if recent_loop_times:
-                        print(f"recent loop time: {(avg_loop_time*1000):.2f} ms")
-                    print(f"=============================")
-                    
-                    # print_stats(controller)
-                    last_stats_time = current_time
+                ## print statistics and loop frequency periodically
+                #if current_time - last_stats_time >= args_cli.stats_interval:
+                #    # calculate while loop execution frequency
+                #    elapsed_time = current_time - loop_start_time
+                #    loop_frequency = loop_count / elapsed_time if elapsed_time > 0 else 0
+                #    
+                #    # calculate moving average frequency (based on recent loop times)
+                #    if recent_loop_times:
+                #        avg_loop_time = sum(recent_loop_times) / len(recent_loop_times)
+                #        moving_avg_frequency = 1.0 / avg_loop_time if avg_loop_time > 0 else 0
+                #        min_loop_time = min(recent_loop_times)
+                #        max_loop_time = max(recent_loop_times)
+                #        max_freq = 1.0 / min_loop_time if min_loop_time > 0 else 0
+                #        min_freq = 1.0 / max_loop_time if max_loop_time > 0 else 0
+                #    else:
+                #        moving_avg_frequency = 0
+                #        min_freq = max_freq = 0
+                #    
+                #    print(f"\n=== While loop execution frequency statistics ===")
+                #    print(f"loop execution count: {loop_count}")
+                #    print(f"running time: {elapsed_time:.2f} seconds")
+                #    print(f"overall average frequency: {loop_frequency:.2f} Hz")
+                #    print(f"moving average frequency: {moving_avg_frequency:.2f} Hz (last {len(recent_loop_times)} times)")
+                #    print(f"frequency range: {min_freq:.2f} - {max_freq:.2f} Hz")
+                #    print(f"average loop time: {(elapsed_time/loop_count*1000):.2f} ms")
+                #    if recent_loop_times:
+                #        print(f"recent loop time: {(avg_loop_time*1000):.2f} ms")
+                #    print(f"=============================")
+                #    
+                #    # print_stats(controller)
+                #    last_stats_time = current_time
        
-                # check environment state
+                ## check environment state
                 if env.sim.is_stopped():
                     print("\nenvironment stopped")
                     break

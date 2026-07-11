@@ -40,6 +40,8 @@ class ObjectTableSceneCfg(TableRedGreenYellowBlockSceneCfg):
     
     # Humanoid robot w/ arms higher
     # 5. humanoid robot configuration 
+    #robot: ArticulationCfg = H12RobotPresets.h12_27dof_inspire_base_fix(init_pos=(0.0, 0.0, 1.0),
+        #init_rot=(0.7071, 0, 0, -0.7071))
     robot: ArticulationCfg = H12RobotPresets.h12_27dof_inspire_base_fix(init_pos=(0.0, 0.0, 1.0),
         init_rot=(0.7071, 0, 0, -0.7071))
 

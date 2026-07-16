@@ -60,7 +60,9 @@ void Ros2ImuNode::ReaderThread() {
 
 
 void spinRclcpp() {
-  rclcpp::init(0, nullptr);
+  int argc = 0;
+  char** argv = NULL;
+  rclcpp::init(argc, argv);
 
 }
 

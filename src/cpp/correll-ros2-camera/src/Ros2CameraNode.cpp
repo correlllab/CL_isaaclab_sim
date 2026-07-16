@@ -63,8 +63,10 @@ void Ros2CameraNode::ReaderThread(std::string topic) {
 
 Ros2CameraNode::~Ros2CameraNode() {}
 
-void spin_rclcpp() {
-  rclcpp::init(0, nullptr);
+void spinRclcpp() {
+  int argc = 0;
+  char** argv = NULL;
+  rclcpp::init(argc, argv);
 
 }
 

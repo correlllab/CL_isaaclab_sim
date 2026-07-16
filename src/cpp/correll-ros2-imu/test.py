@@ -4,7 +4,7 @@ sys.path.append("build")
 
 import ros2_imu_node_py
 
-ros2_imu_node_py.spin_rclcpp()
+ros2_imu_node_py.spin_rclcpp(2)
 
 imu_publisher = ros2_imu_node_py.ros2_imu_node("imu_test_topic")
 

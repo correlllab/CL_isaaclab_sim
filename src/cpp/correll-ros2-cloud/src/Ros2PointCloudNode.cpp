@@ -85,7 +85,9 @@ void Ros2PointCloudNode::ReaderThread(std::string topic) {
 
 
 void spinRclcpp() {
-  rclcpp::init(0, nullptr);
+  int argc = 0;
+  char** argv = NULL;
+  rclcpp::init(argc, argv);
 
 }
 

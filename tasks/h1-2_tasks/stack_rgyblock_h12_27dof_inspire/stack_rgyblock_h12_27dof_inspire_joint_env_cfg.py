@@ -51,12 +51,12 @@ class ObjectTableSceneCfg(TableRedGreenYellowBlockSceneCfg):
     left_wrist_camera = CameraPresets.left_inspire_wrist_camera()
     right_wrist_camera = CameraPresets.right_inspire_wrist_camera()
 
-    correll_cam_0 = CameraPresets.correll_camera_0()
-    #correll_cam_1 = CameraPresets.correll_camera_1()
-    #correll_cam_2 = CameraPresets.correll_camera_2()
-    imu = ImuPresets.livox_imu()
+    #correll_cam_0 = CameraPresets.correll_camera_0()
+    ##correll_cam_1 = CameraPresets.correll_camera_1()
+    ##correll_cam_2 = CameraPresets.correll_camera_2()
+    #imu = ImuPresets.livox_imu()
 
-    lidar = RayCasterPresets.livox_lidar()
+    #lidar = RayCasterPresets.livox_lidar()
 
 ##
 # MDP settings

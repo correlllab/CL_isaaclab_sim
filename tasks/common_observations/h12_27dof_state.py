@@ -1,7 +1,7 @@
 # Copyright (c) 2025, Unitree Robotics Co., Ltd. All Rights Reserved.
 # License: Apache License, Version 2.0  
 """
-g1_29dof state
+h12_27 dof state
 """     
 from __future__ import annotations
 
@@ -22,7 +22,6 @@ def get_robot_boy_joint_names() -> list[str]:
     return [
         # leg joints (12)
         # left leg (6)
-        "penis_joint"
         "left_hip_pitch_joint",
         "left_hip_roll_joint",
         "geometry/pelvis/left_hip_yaw_link/left_hip_yaw_joint",
@@ -78,7 +77,7 @@ def get_robot_arm_joint_names() -> list[str]:
 
 # global variable to cache the DDS instance
 from dds.dds_master import dds_manager
-_g1_robot_dds = None
+_h12_robot_dds = None
 _dds_initialized = False
 
 
@@ -100,37 +99,37 @@ _imu_acc_cache = {
     "dt": 0.01,
     "initialized": False,
 }
-def _get_g1_robot_dds_instance():
+def _get_h12_robot_dds_instance():
     """get the DDS instance, delay initialization"""
-    global _g1_robot_dds, _dds_initialized
+    global _h12_robot_dds, _dds_initialized
     
-    if not _dds_initialized or _g1_robot_dds is None:
+    if not _dds_initialized or _h12_robot_dds is None:
         try:
             # dynamically import the DDS module
             sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dds'))
             from dds.dds_master import dds_manager
             print(f"dds_manager: {dds_manager}")
-            _g1_robot_dds = dds_manager.get_object("g129")
-            print("[g1_state] G1 robot DDS communication instance obtained")
+            _h12_robot_dds = dds_manager.get_object("h1_2")
+            print("[h12_state] H12 robot DDS communication instance obtained")
             
             # register the cleanup function
             import atexit
             def cleanup_dds():
                 try:
-                    if _g1_robot_dds:
-                        dds_manager.unregister_object("g129")
-                        print("[g1_state] DDS communication closed correctly")
+                    if _h12_robot_dds:
+                        dds_manager.unregister_object("h1_2")
+                        print("[h12_state] DDS communication closed correctly")
                 except Exception as e:
-                    print(f"[g1_state] Error closing DDS: {e}")
+                    print(f"[h12_state] Error closing DDS: {e}")
             atexit.register(cleanup_dds)
             
         except Exception as e:
-            print(f"[g1_state] Failed to get G1 robot DDS instance: {e}")
-            _g1_robot_dds = None
+            print(f"[h12_state] Failed to get H12 robot DDS instance: {e}")
+            _h12_robot_dds = None
         
         _dds_initialized = True
     
-    return _g1_robot_dds
+    return _h12_robot_dds
 
 def get_robot_boy_joint_states(
     env: ManagerBasedRLEnv,
@@ -209,11 +208,11 @@ def get_robot_boy_joint_states(
             import time
             now_ms = int(time.time() * 1000)
             if now_ms - _obs_cache["dds_last_ms"] >= _obs_cache["dds_min_interval_ms"]:
-                g1_robot_dds = _get_g1_robot_dds_instance()
-                if g1_robot_dds:
+                h12_robot_dds = _get_h12_robot_dds_instance()
+                if h12_robot_dds:
                     imu_data = get_robot_imu_data(env)
                     if imu_data.shape[0] > 0:
-                        g1_robot_dds.write_robot_state(
+                        h12_robot_dds.write_robot_state(
                             pos_buf[0].contiguous().cpu().numpy(),
                             vel_buf[0].contiguous().cpu().numpy(),
                             torque_buf[0].contiguous().cpu().numpy(),

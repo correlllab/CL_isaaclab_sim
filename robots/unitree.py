@@ -1329,7 +1329,7 @@ H12_CFG_WITH_MAGPIE = ArticulationCfg(
 
 H12_CFG_WITH_INSPIRE_HAND = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path=f"{project_root}/assets/robots/h1_2-26dof-inspire-base-fix-usd/h1_2_26dof_with_inspire_rev_1_0.usd",
+        usd_path=f"/workspace/hams/isaac/mateo_ws/CL_Assets/isaac_assets/robots/h1_2-26dof-inspire-base-fix-usd/h1_2_26dof_with_inspire_rev_1_0.usd",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             kinematic_enabled=False,

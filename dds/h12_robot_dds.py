@@ -1,9 +1,3 @@
-# Copyright (c) 2025, Unitree Robotics Co., Ltd. All Rights Reserved.
-# License: Apache License, Version 2.0  
-"""
-G1 robot DDS communication class
-Handle the state publishing and command receiving of the G1 robot
-"""
 
 import numpy as np
 from typing import Any, Dict, Optional
@@ -15,7 +9,7 @@ from unitree_sdk2py.idl.default import unitree_hg_msg_dds__LowCmd_, unitree_hg_m
 from unitree_sdk2py.utils.crc import CRC
 
 
-class G1RobotDDS(DDSObject):
+class H12RobotDDS(DDSObject):
     """G1 robot DDS communication class - singleton pattern
     
     Features:
@@ -23,7 +17,7 @@ class G1RobotDDS(DDSObject):
     - Receive the control command of the G1 robot (rt/lowcmd)
     """
     
-    def __init__(self,node_name:str="g1_robot"):
+    def __init__(self,node_name:str="h1_2"):
         """Initialize the G1 robot DDS node"""
         # avoid duplicate initialization
         if hasattr(self, '_initialized'):

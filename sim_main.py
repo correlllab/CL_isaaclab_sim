@@ -103,7 +103,6 @@ from layeredcontrol.robot_control_system import (
     ControlConfig,
 )
 
-#from dds.reset_pose_dds import *
 import tasks
 from isaaclab_tasks.utils.parse_cfg import parse_env_cfg
 
@@ -394,8 +393,6 @@ def main():
         print("========= create image server success =========")
         print("========= create dds =========")
         try:
-            #reset_pose_dds,sim_state_dds,dds_manager = create_dds_objects(args_cli,env)
-            #sim_state_dds,dds_manager = create_dds_objects(args_cli,env)
             dds_manager = create_dds_objects(args_cli,env)
         except Exception as e:
             print(f"Failed to create dds: {e}")
@@ -563,105 +560,9 @@ def main():
                     #except Exception as e:
                     #    print(e)
                      
-                    #try:
-                    ## sim_state = json.dumps(sim_state)
-                    #    sim_state_dds.write_sim_state_data(sim_state)
-                    #except Exception as e:
-                    #    print(f"Failed to write sim state: {e}")
-                    #    raise e
-                    #try:
-                    #    reset_pose_cmd = reset_pose_dds.get_reset_pose_command()
-                    #except Exception as e:
-                    #    print(f"Failed to get reset pose command: {e}")
-                    #    raise e
-                    ## Compute current reward values manually if needed for debugging
-                    #try:
-                    #    if (loop_count % reward_interval) == 0:
-                    #        pass
-                    #        # current_reward = get_step_reward_value(env)
-                    #except Exception as e:
-                    #    print(f"奖励计算失败: {e}")
-                    #    pass
-                    
-                    #if reset_pose_cmd is not None:
-                    #    try:
-                    #        reset_category = reset_pose_cmd.get("reset_category")
-                    #        if (args_cli.enable_wholebody_dds and (reset_category == '1' or reset_category == '2')) or (not args_cli.enable_wholebody_dds and reset_category == '1'):
-                    #            print("reset object")
-                    #            env_cfg.event_manager.trigger("reset_object_self", env)
-                    #            reset_pose_dds.write_reset_pose_command(-1)
-                    #        elif reset_category == '2' and not args_cli.enable_wholebody_dds:
-                    #            print("reset all")
-                    #            env_cfg.event_manager.trigger("reset_all_self", env)
-                    #            reset_pose_dds.write_reset_pose_command(-1)
-                    #    except Exception as e:
-                    #        print(f"Failed to write reset pose command: {e}")
-                    #        raise e
                 else:
                     pass
-                    #if action_provider.get_start_loop() and data_idx<len(data_json_list):
-                    #    print(f"data_idx: {data_idx}")
-                    #    try:
-                    #        sim_state,task_name = action_provider.load_data(data_json_list[data_idx])
-                    #        if task_name!=args_cli.task:
-                    #            raise ValueError(f" The {task_name} in the dataset is different from the {args_cli.task} being executed .")
-                    #    except Exception as e:
-                    #        print(f"Failed to load data: {e}")
-                    #        raise e
-                    #    try:
-                    #        env.reset_to(sim_state, torch.tensor([0], device=env.device), is_relative=True)
-                    #        env.sim.reset()
-                    #        time.sleep(1)
-                    #        action_provider.start_replay()
-                    #        data_idx+=1
-                    #    except Exception as e:
-                    #        print(f"Failed to start replay: {e}")
-                    #        raise e
-                ## print(f"env_state: {env_state}")
-                ## calculate instantaneous loop time
-                #loop_dt = current_time - last_loop_time
-                #last_loop_time = current_time
-                #recent_loop_times.append(loop_dt)
-                #
-                ## keep recent 100 loop times
-                #if len(recent_loop_times) > 100:
-                #    recent_loop_times.pop(0)
-                #
-                ## execute control step (in main thread, support rendering)
                 controller.step()
-
-                ## print statistics and loop frequency periodically
-                #if current_time - last_stats_time >= args_cli.stats_interval:
-                #    # calculate while loop execution frequency
-                #    elapsed_time = current_time - loop_start_time
-                #    loop_frequency = loop_count / elapsed_time if elapsed_time > 0 else 0
-                #    
-                #    # calculate moving average frequency (based on recent loop times)
-                #    if recent_loop_times:
-                #        avg_loop_time = sum(recent_loop_times) / len(recent_loop_times)
-                #        moving_avg_frequency = 1.0 / avg_loop_time if avg_loop_time > 0 else 0
-                #        min_loop_time = min(recent_loop_times)
-                #        max_loop_time = max(recent_loop_times)
-                #        max_freq = 1.0 / min_loop_time if min_loop_time > 0 else 0
-                #        min_freq = 1.0 / max_loop_time if max_loop_time > 0 else 0
-                #    else:
-                #        moving_avg_frequency = 0
-                #        min_freq = max_freq = 0
-                #    
-                #    print(f"\n=== While loop execution frequency statistics ===")
-                #    print(f"loop execution count: {loop_count}")
-                #    print(f"running time: {elapsed_time:.2f} seconds")
-                #    print(f"overall average frequency: {loop_frequency:.2f} Hz")
-                #    print(f"moving average frequency: {moving_avg_frequency:.2f} Hz (last {len(recent_loop_times)} times)")
-                #    print(f"frequency range: {min_freq:.2f} - {max_freq:.2f} Hz")
-                #    print(f"average loop time: {(elapsed_time/loop_count*1000):.2f} ms")
-                #    if recent_loop_times:
-                #        print(f"recent loop time: {(avg_loop_time*1000):.2f} ms")
-                #    print(f"=============================")
-                #    
-                #    # print_stats(controller)
-                #    last_stats_time = current_time
-       
                 ## check environment state
                 if env.sim.is_stopped():
                     print("\nenvironment stopped")

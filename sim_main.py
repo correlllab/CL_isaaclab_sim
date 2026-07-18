@@ -24,7 +24,7 @@ from time import perf_counter
 # Isaac Lab AppLauncher
 from isaaclab.app import AppLauncher
 
-#from dds.dds_create import create_dds_objects,create_dds_objects_replay
+from dds.dds_create import create_dds_objects
 # add command line arguments
 parser = argparse.ArgumentParser(description="Unitree Simulation")
 parser.add_argument("--task", type=str, default="Isaac-PickPlace-G129-Head-Waist-Fix", help="task name")
@@ -33,7 +33,7 @@ parser.add_argument("--action_source", type=str, default="dds",
                    help="Action source")
 
 
-parser.add_argument("--robot_type", type=str, default="g129", help="robot type")
+parser.add_argument("--robot_type", type=str, default="h1_2", help="robot type")
 parser.add_argument("--enable_dex1_dds", action="store_true", help="enable gripper DDS")
 parser.add_argument("--enable_dex3_dds", action="store_true", help="enable dexterous hand DDS")
 parser.add_argument("--enable_inspire_dds", action="store_true", help="enable inspire hand DDS")
@@ -103,7 +103,7 @@ from layeredcontrol.robot_control_system import (
     ControlConfig,
 )
 
-from dds.reset_pose_dds import *
+#from dds.reset_pose_dds import *
 import tasks
 from isaaclab_tasks.utils.parse_cfg import parse_env_cfg
 
@@ -113,8 +113,8 @@ from tools.augmentation_utils import (
 )
 
 from tools.data_json_load import sim_state_to_json
-from dds.sim_state_dds import *
-from action_provider.create_action_provider import create_action_provider
+#from dds.sim_state_dds import *
+from action_provider.action_provider_dds import create_action_provider
 from tools.get_stiffness import get_robot_stiffness_from_env
 from tools.get_reward import get_step_reward_value,get_current_rewards
 from PIL import Image
@@ -145,9 +145,9 @@ sys.path.append("/workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-
 sys.path.append("/workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-ros2-imu/build")
 sys.path.append("/workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-ros2-cloud/build")
 
-import ros2_point_cloud_node_py
-import ros2_camera_node_py
-import ros2_imu_node_py
+#import ros2_point_cloud_node_py
+#import ros2_camera_node_py
+#import ros2_imu_node_py
 
 def main():
     """main function"""
@@ -394,26 +394,28 @@ def main():
         print("========= create image server success =========")
         print("========= create dds =========")
         try:
-            reset_pose_dds,sim_state_dds,dds_manager = create_dds_objects(args_cli,env)
+            #reset_pose_dds,sim_state_dds,dds_manager = create_dds_objects(args_cli,env)
+            #sim_state_dds,dds_manager = create_dds_objects(args_cli,env)
+            dds_manager = create_dds_objects(args_cli,env)
         except Exception as e:
             print(f"Failed to create dds: {e}")
             return
         print("========= create dds success =========")
     else:
         print("========= create dds =========")
-        try:
-            create_dds_objects_replay(args_cli,env)
-        except Exception as e:
-            print(f"Failed to create dds: {e}")
-            return
-        print("========= create dds success =========")
-        from tools.data_json_load import get_data_json_list
-        print("========= get data json list =========")
-        data_idx=0
-        data_json_list = get_data_json_list(args_cli.file_path)
-        if args_cli.action_source != "replay":
-            args_cli.action_source = "replay"
-        print("========= get data json list success =========")
+        #try:
+        #    create_dds_objects_replay(args_cli,env)
+        #except Exception as e:
+        #    print(f"Failed to create dds: {e}")
+        #    return
+        #print("========= create dds success =========")
+        #from tools.data_json_load import get_data_json_list
+        #print("========= get data json list =========")
+        #data_idx=0
+        #data_json_list = get_data_json_list(args_cli.file_path)
+        #if args_cli.action_source != "replay":
+        #    args_cli.action_source = "replay"
+        #print("========= get data json list success =========")
     # create action provider
     
     print(f"\ncreate action provider: {args_cli.action_source}...")
@@ -561,12 +563,12 @@ def main():
                     #except Exception as e:
                     #    print(e)
                      
-                    try:
-                    # sim_state = json.dumps(sim_state)
-                        sim_state_dds.write_sim_state_data(sim_state)
-                    except Exception as e:
-                        print(f"Failed to write sim state: {e}")
-                        raise e
+                    #try:
+                    ## sim_state = json.dumps(sim_state)
+                    #    sim_state_dds.write_sim_state_data(sim_state)
+                    #except Exception as e:
+                    #    print(f"Failed to write sim state: {e}")
+                    #    raise e
                     #try:
                     #    reset_pose_cmd = reset_pose_dds.get_reset_pose_command()
                     #except Exception as e:
@@ -596,24 +598,25 @@ def main():
                     #        print(f"Failed to write reset pose command: {e}")
                     #        raise e
                 else:
-                    if action_provider.get_start_loop() and data_idx<len(data_json_list):
-                        print(f"data_idx: {data_idx}")
-                        try:
-                            sim_state,task_name = action_provider.load_data(data_json_list[data_idx])
-                            if task_name!=args_cli.task:
-                                raise ValueError(f" The {task_name} in the dataset is different from the {args_cli.task} being executed .")
-                        except Exception as e:
-                            print(f"Failed to load data: {e}")
-                            raise e
-                        try:
-                            env.reset_to(sim_state, torch.tensor([0], device=env.device), is_relative=True)
-                            env.sim.reset()
-                            time.sleep(1)
-                            action_provider.start_replay()
-                            data_idx+=1
-                        except Exception as e:
-                            print(f"Failed to start replay: {e}")
-                            raise e
+                    pass
+                    #if action_provider.get_start_loop() and data_idx<len(data_json_list):
+                    #    print(f"data_idx: {data_idx}")
+                    #    try:
+                    #        sim_state,task_name = action_provider.load_data(data_json_list[data_idx])
+                    #        if task_name!=args_cli.task:
+                    #            raise ValueError(f" The {task_name} in the dataset is different from the {args_cli.task} being executed .")
+                    #    except Exception as e:
+                    #        print(f"Failed to load data: {e}")
+                    #        raise e
+                    #    try:
+                    #        env.reset_to(sim_state, torch.tensor([0], device=env.device), is_relative=True)
+                    #        env.sim.reset()
+                    #        time.sleep(1)
+                    #        action_provider.start_replay()
+                    #        data_idx+=1
+                    #    except Exception as e:
+                    #        print(f"Failed to start replay: {e}")
+                    #        raise e
                 ## print(f"env_state: {env_state}")
                 ## calculate instantaneous loop time
                 #loop_dt = current_time - last_loop_time

@@ -128,7 +128,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
         init_state=AssetBaseCfg.InitialStateCfg(pos=[0.0,-0.7,-0.1],   # initial position [x, y, z]
                                                 rot=[1.0, 0.0, 0.0, 0.0]), # initial rotation [x, y, z, w]
         spawn=UsdFileCfg(
-            usd_path=f"{project_root}/assets/objects/table_with_yellowbox.usd",    # table model file
+            usd_path=f"/workspace/hams/isaac/mateo_ws/CL_Assets/isaac_assets/objects/table_with_yellowbox.usd",    # table model file
             # rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),    # set to kinematic object
         ),
     )
@@ -138,7 +138,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
         init_state=AssetBaseCfg.InitialStateCfg(pos=[0.0,0.7,-0.1],   # initial position [x, y, z]
                                                 rot=[0.0, 0.0, 0.0, 1.0]), # initial rotation [x, y, z, w]
         spawn=UsdFileCfg(
-            usd_path=f"{project_root}/assets/objects/table_with_yellowbox.usd",    # table model file
+            usd_path=f"/workspace/hams/isaac/mateo_ws/CL_Assets/isaac_assets/objects/table_with_yellowbox.usd",    # table model file
             # rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),    # set to kinematic object
         ),
     )

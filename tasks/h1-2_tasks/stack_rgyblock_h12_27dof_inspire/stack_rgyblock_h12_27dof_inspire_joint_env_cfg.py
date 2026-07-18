@@ -111,6 +111,7 @@ class TerminationsCfg:
 
 @configclass
 class RewardsCfg:
+
     reward = RewTerm(func=mdp.compute_reward,weight=1.0)
 
 @configclass

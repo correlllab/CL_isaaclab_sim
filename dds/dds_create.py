@@ -17,10 +17,10 @@ def create_dds_objects(args_cli,env):
         dds_manager.register_object("inspire", inspire)
         publish_names.append("inspire")
         subscribe_names.append("inspire")
-    from dds.rewards_dds import RewardsDDS
-    rewards_dds = RewardsDDS(env,args_cli.task)
-    dds_manager.register_object("rewards", rewards_dds)
-    publish_names.append("rewards")
+    #from dds.rewards_dds import RewardsDDS
+    #rewards_dds = RewardsDDS(env,args_cli.task)
+    #dds_manager.register_object("rewards", rewards_dds)
+    #publish_names.append("rewards")
 
     dds_manager.start_publishing(publish_names)
     dds_manager.start_subscribing(subscribe_names)

@@ -10,14 +10,16 @@ class DDSActionProvider(ActionProvider):
     def __init__(self,env, args_cli):
         super().__init__("DDSActionProvider")
         self.enable_robot = args_cli.robot_type
-        self.enable_gripper = args_cli.enable_dex1_dds
-        self.enable_dex3 = args_cli.enable_dex3_dds
+        print(f"{self.enable_robot=}")
+        print(f"{args_cli.robot_type=}")
+        #self.enable_gripper = args_cli.enable_dex1_dds
+        #self.enable_dex3 = args_cli.enable_dex3_dds
         self.enable_inspire = args_cli.enable_inspire_dds
         self.env = env
         # Initialize DDS communication
         self.robot_dds = None
-        self.gripper_dds = None
-        self.dex3_dds = None
+        #self.gripper_dds = None
+        #self.dex3_dds = None
         self.inspire_dds = None
         self._setup_dds()
         self._setup_joint_mapping()
@@ -25,16 +27,19 @@ class DDSActionProvider(ActionProvider):
     def _setup_dds(self):
         """Setup DDS communication"""
         print(f"enable_robot: {self.enable_robot}")
-        print(f"enable_gripper: {self.enable_gripper}")
-        print(f"enable_dex3: {self.enable_dex3}")
+        #print(f"enable_gripper: {self.enable_gripper}")
+        #print(f"enable_dex3: {self.enable_dex3}")
         try:
-            if self.enable_robot == "g129" or self.enable_robot == "h1_2":
+            if self.enable_robot == "h1_2":
                 self.robot_dds = dds_manager.get_object("g129")
-            if self.enable_gripper:
-                self.gripper_dds = dds_manager.get_object("dex1")
-            elif self.enable_dex3:
-                self.dex3_dds = dds_manager.get_object("dex3")
-            elif self.enable_inspire:
+            #if self.enable_robot == "g129" or self.enable_robot == "h1_2":
+
+            #    self.robot_dds = dds_manager.get_object("g129")
+            #if self.enable_gripper:
+            #    self.gripper_dds = dds_manager.get_object("dex1")
+            #elif self.enable_dex3:
+            #    self.dex3_dds = dds_manager.get_object("dex3")
+            if self.enable_inspire:
                 self.inspire_dds = dds_manager.get_object("inspire")
             print(f"[{self.name}] DDS communication initialized")
         except Exception as e:
@@ -42,30 +47,31 @@ class DDSActionProvider(ActionProvider):
     
     def _setup_joint_mapping(self):
         """Setup joint mapping"""
-        if self.enable_robot == "g129":
-            self.arm_joint_mapping = {
-                "left_shoulder_pitch_joint": 0,
-                "left_shoulder_roll_joint": 1,
-                "left_shoulder_yaw_joint": 2,
-                "left_elbow_joint": 3,
-                "left_wrist_roll_joint": 4,
-                "left_wrist_pitch_joint": 5,
-                "left_wrist_yaw_joint": 6,
-                "right_shoulder_pitch_joint": 7,
-                "right_shoulder_roll_joint": 8,
-                "right_shoulder_yaw_joint": 9,
-                "right_elbow_joint": 10,
-                "right_wrist_roll_joint": 11,
-                "right_wrist_pitch_joint": 12,
-                "right_wrist_yaw_joint": 13
-            }
-            self.all_joint_names = self.env.scene["robot"].data.joint_names
-            self.joint_to_index = {name: i for i, name in enumerate(self.all_joint_names)}
-            self.arm_action_pose = [self.joint_to_index[name] for name in self.arm_joint_mapping.keys()]
-            self.arm_action_pose_indices = [self.arm_joint_mapping[name] for name in self.arm_joint_mapping.keys()]
-            self._arm_target_indices = [self.joint_to_index[name] for name in self.arm_joint_mapping.keys()]
-            self._arm_source_indices = [idx + 15 for idx in self.arm_joint_mapping.values()]  # source data from positions[15:]
-        elif self.enable_robot == "h1_2":
+        print(self.enable_robot)
+        #if self.enable_robot == "g129":
+        #    self.arm_joint_mapping = {
+        #        "left_shoulder_pitch_joint": 0,
+        #        "left_shoulder_roll_joint": 1,
+        #        "left_shoulder_yaw_joint": 2,
+        #        "left_elbow_joint": 3,
+        #        "left_wrist_roll_joint": 4,
+        #        "left_wrist_pitch_joint": 5,
+        #        "left_wrist_yaw_joint": 6,
+        #        "right_shoulder_pitch_joint": 7,
+        #        "right_shoulder_roll_joint": 8,
+        #        "right_shoulder_yaw_joint": 9,
+        #        "right_elbow_joint": 10,
+        #        "right_wrist_roll_joint": 11,
+        #        "right_wrist_pitch_joint": 12,
+        #        "right_wrist_yaw_joint": 13
+        #    }
+        #    self.all_joint_names = self.env.scene["robot"].data.joint_names
+        #    self.joint_to_index = {name: i for i, name in enumerate(self.all_joint_names)}
+        #    self.arm_action_pose = [self.joint_to_index[name] for name in self.arm_joint_mapping.keys()]
+        #    self.arm_action_pose_indices = [self.arm_joint_mapping[name] for name in self.arm_joint_mapping.keys()]
+        #    self._arm_target_indices = [self.joint_to_index[name] for name in self.arm_joint_mapping.keys()]
+        #    self._arm_source_indices = [idx + 15 for idx in self.arm_joint_mapping.values()]  # source data from positions[15:]
+        if self.enable_robot == "h1_2":
             self.arm_joint_mapping = {
                 "left_shoulder_pitch_joint": 0,
                 "left_shoulder_roll_joint": 1,
@@ -196,15 +202,15 @@ class DDSActionProvider(ActionProvider):
 
             full_action = self._full_action_buf
             full_action.zero_()
-            if self.enable_robot == "g129" and self.robot_dds:
-                cmd_data = self.robot_dds.get_robot_command()
-                if cmd_data and 'motor_cmd' in cmd_data:
-                    positions = cmd_data['motor_cmd']['positions']
-                    if len(positions) >= 29:
-                        self._positions_buf[:29].copy_(torch.tensor(positions[:29], dtype=torch.float32, device=self.env.device))
-                        arm_vals = self._positions_buf.index_select(0, self._arm_source_idx_t)
-                        full_action.index_copy_(0, self._arm_target_idx_t, arm_vals)
-            elif self.enable_robot == "h1_2" and self.robot_dds:
+            #if self.enable_robot == "g129" and self.robot_dds:
+            #    cmd_data = self.robot_dds.get_robot_command()
+            #    if cmd_data and 'motor_cmd' in cmd_data:
+            #        positions = cmd_data['motor_cmd']['positions']
+            #        if len(positions) >= 29:
+            #            self._positions_buf[:29].copy_(torch.tensor(positions[:29], dtype=torch.float32, device=self.env.device))
+            #            arm_vals = self._positions_buf.index_select(0, self._arm_source_idx_t)
+            #            full_action.index_copy_(0, self._arm_target_idx_t, arm_vals)
+            if self.enable_robot == "h1_2" and self.robot_dds:
                 cmd_data = self.robot_dds.get_robot_command()
                 if cmd_data and 'motor_cmd' in cmd_data:
                     positions = cmd_data['motor_cmd']['positions']

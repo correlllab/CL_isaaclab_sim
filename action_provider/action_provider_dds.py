@@ -4,6 +4,19 @@ from action_provider.action_base import ActionProvider
 from typing import Optional
 import torch
 from dds.dds_master import dds_manager
+
+
+def create_action_provider(env,args):
+    """create action provider based on parameters"""
+    if args.action_source == "dds":
+        return DDSActionProvider(
+            env=env,
+            args_cli=args
+        )
+    else:
+        print(f"unknown action source: {args.action_source}")
+        return None
+
 class DDSActionProvider(ActionProvider):
     """Action provider based on DDS"""
     

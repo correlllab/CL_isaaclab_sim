@@ -8,13 +8,14 @@ support different robot variants: with/without waist joint, different finger con
 
 from isaaclab.assets import ArticulationCfg
 from isaaclab.utils import configclass
-from robots.unitree import G129_CFG_WITH_DEX1_BASE_FIX,G129_CFG_WITH_DEX3_BASE_FIX,G129_CFG_WITH_INSPIRE_HAND,G129_CFG_WITH_DEX1_WHOLEBODY,G129_CFG_WITH_DEX3_WHOLEBODY,G129_CFG_WITH_INSPIRE_WHOLEBODY,H12_CFG_WITH_INSPIRE_HAND, H12_CFG_WITH_MAGPIE
+#from robots.unitree import G129_CFG_WITH_DEX1_BASE_FIX,G129_CFG_WITH_DEX3_BASE_FIX,G129_CFG_WITH_INSPIRE_HAND,G129_CFG_WITH_DEX1_WHOLEBODY,G129_CFG_WITH_DEX3_WHOLEBODY,G129_CFG_WITH_INSPIRE_WHOLEBODY,H12_CFG_WITH_INSPIRE_HAND, H12_CFG_WITH_MAGPIE
+from robots.unitree import H12_CFG_WITH_INSPIRE_HAND
 from typing import Optional, Dict, Tuple, Literal
 
 
 @configclass
 class RobotJointTemplates:
-    """G1 robot joint template collection
+    """robot joint template collection
     
     provide different types of joint configuration templates
     """
@@ -83,46 +84,41 @@ class RobotJointTemplates:
         }
     
     @classmethod
-    def get_hand_joints(cls, hand_type: Literal["gripper", "dex3","inspire"] = "gripper") -> Dict[str, float]:
+    def get_hand_joints(cls, hand_type="inspire") -> Dict[str, float]:
         """get the default position of the hand joints
         
-        Args:
-            hand_type: hand type
-                - "gripper": simple gripper (2 joints)
-                - "dex3": dexterous hand (14 joints)
-                
         Returns:
             hand joint position dictionary
         """
-        if hand_type == "gripper":
-            return {
-                # simple gripper joint
-                "left_hand_Joint1_1": 0.0,
-                "left_hand_Joint2_1": 0.0,
-                "right_hand_Joint1_1": 0.0,
-                "right_hand_Joint2_1": 0.0,
-            }
-        elif hand_type == "dex3":
-            return {
-                # dexterous hand joint - left hand
-                "left_hand_index_0_joint": 0.0,
-                "left_hand_middle_0_joint": 0.0,
-                "left_hand_thumb_0_joint": 0.0,
-                "left_hand_index_1_joint": 0.0,
-                "left_hand_middle_1_joint": 0.0,
-                "left_hand_thumb_1_joint": 0.0,
-                "left_hand_thumb_2_joint": 0.0,
-                
-                # dexterous hand joint - right hand
-                "right_hand_index_0_joint": 0.0,
-                "right_hand_middle_0_joint": 0.0,
-                "right_hand_thumb_0_joint": 0.0,
-                "right_hand_index_1_joint": 0.0,
-                "right_hand_middle_1_joint": 0.0,
-                "right_hand_thumb_1_joint": 0.0,
-                "right_hand_thumb_2_joint": 0.0,
-            }
-        elif hand_type == "inspire":
+        #if hand_type == "gripper":
+        #    return {
+        #        # simple gripper joint
+        #        "left_hand_Joint1_1": 0.0,
+        #        "left_hand_Joint2_1": 0.0,
+        #        "right_hand_Joint1_1": 0.0,
+        #        "right_hand_Joint2_1": 0.0,
+        #    }
+        #elif hand_type == "dex3":
+        #    return {
+        #        # dexterous hand joint - left hand
+        #        "left_hand_index_0_joint": 0.0,
+        #        "left_hand_middle_0_joint": 0.0,
+        #        "left_hand_thumb_0_joint": 0.0,
+        #        "left_hand_index_1_joint": 0.0,
+        #        "left_hand_middle_1_joint": 0.0,
+        #        "left_hand_thumb_1_joint": 0.0,
+        #        "left_hand_thumb_2_joint": 0.0,
+        #        
+        #        # dexterous hand joint - right hand
+        #        "right_hand_index_0_joint": 0.0,
+        #        "right_hand_middle_0_joint": 0.0,
+        #        "right_hand_thumb_0_joint": 0.0,
+        #        "right_hand_index_1_joint": 0.0,
+        #        "right_hand_middle_1_joint": 0.0,
+        #        "right_hand_thumb_1_joint": 0.0,
+        #        "right_hand_thumb_2_joint": 0.0,
+        #    }
+        if hand_type == "inspire":
             return {
             # fingers joints
             "L_index_proximal_joint": 0.0,
@@ -152,7 +148,7 @@ class RobotJointTemplates:
             "R_thumb_distal_joint":0.0,
             }
         else:
-            raise ValueError(f"Unsupported hand type: {hand_type}. Supported: 'gripper', 'dex3'")
+            raise ValueError(f"Unsupported hand type: {hand_type}. Supported: 'inspire', 'magpie(coming soon)'")
 
 
 @configclass
@@ -197,9 +193,9 @@ class RobotBaseCfg:
         """
         
         # use the default base configuration
-        if base_config is None and robot_type == "g129dof":
-            base_config = G129_CFG_WITH_DEX1_BASE_FIX
-        elif base_config is None and robot_type == "h1_2":
+        #if base_config is None and robot_type == "g129dof":
+        #    base_config = G129_CFG_WITH_DEX1_BASE_FIX
+        if base_config is None and robot_type == "h1_2":
             base_config = H12_CFG_WITH_INSPIRE_HAND
         
         if update_default_joint_pos:
@@ -209,8 +205,8 @@ class RobotBaseCfg:
             default_joint_pos.update(RobotJointTemplates.get_leg_joints())
             
             # add the waist joints (if enabled)
-            if robot_type == "g129dof":
-                default_joint_pos.update(RobotJointTemplates.get_waist_joints(include_waist))
+            #if robot_type == "g129dof":
+            #    default_joint_pos.update(RobotJointTemplates.get_waist_joints(include_waist))
             
             # add the arm joints
             default_joint_pos.update(RobotJointTemplates.get_arm_joints())
@@ -239,84 +235,84 @@ class RobotBaseCfg:
         )
 
 
-@configclass 
-class G1RobotPresets:
-    """G1 robot preset configuration collection
-    
-    include the common robot configuration preset for different scenes, support different robot variants
-    """
-    
-    # === pick-place task preset ===
-    
-    @classmethod
-    def g1_29dof_dex1_base_fix(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.76),
-        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:
-        """pick-place task configuration - simple gripper"""
-        return RobotBaseCfg.get_base_config(
-            init_pos=init_pos,
-            init_rot=init_rot,
-            include_waist=False,
-            hand_type="gripper"
-        )
-    
-    @classmethod
-    def g1_29dof_dex3_base_fix(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.76),
-        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:
-        """pick-place task configuration - dex3 hand"""
-        return RobotBaseCfg.get_base_config(
-            init_pos=init_pos,
-            init_rot=init_rot,
-            include_waist=False,
-            hand_type="dex3",
-            base_config=G129_CFG_WITH_DEX3_BASE_FIX
-        )
-
-
-    @classmethod
-    def g1_29dof_inspire_base_fix(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.76),
-        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:
-        """pick-place task configuration - inspire hand"""
-        return RobotBaseCfg.get_base_config(
-            init_pos=init_pos,
-            init_rot=init_rot,
-            include_waist=False,
-            hand_type="inspire",
-            base_config=G129_CFG_WITH_INSPIRE_HAND
-        )
-    @classmethod
-    def g1_29dof_dex1_wholebody(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.80),
-        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:
-        """pick-place task configuration - inspire hand"""
-        return RobotBaseCfg.get_base_config(
-            init_pos=init_pos,
-            init_rot=init_rot,
-            include_waist=True,
-            is_have_hand=False,
-            base_config=G129_CFG_WITH_DEX1_WHOLEBODY,
-            update_default_joint_pos=False )
-    @classmethod
-    def g1_29dof_dex3_wholebody(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.80),
-        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:
-        """pick-place task configuration - inspire hand"""
-        return RobotBaseCfg.get_base_config(
-            init_pos=init_pos,
-            init_rot=init_rot,
-            include_waist=True,
-            is_have_hand=False,
-            base_config=G129_CFG_WITH_DEX3_WHOLEBODY,
-            update_default_joint_pos=False )
-    @classmethod
-    def g1_29dof_inspire_wholebody(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.80),
-        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:
-        """pick-place task configuration - inspire hand"""
-        return RobotBaseCfg.get_base_config(
-            init_pos=init_pos,
-            init_rot=init_rot,
-            include_waist=True,
-            is_have_hand=False,
-            base_config=G129_CFG_WITH_INSPIRE_WHOLEBODY,
-            update_default_joint_pos=False )
-
+#@configclass 
+#class G1RobotPresets:
+#    """G1 robot preset configuration collection
+#    
+#    include the common robot configuration preset for different scenes, support different robot variants
+#    """
+#    
+#    # === pick-place task preset ===
+#    
+#    @classmethod
+#    def g1_29dof_dex1_base_fix(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.76),
+#        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:
+#        """pick-place task configuration - simple gripper"""
+#        return RobotBaseCfg.get_base_config(
+#            init_pos=init_pos,
+#            init_rot=init_rot,
+#            include_waist=False,
+#            hand_type="gripper"
+#        )
+#    
+#    @classmethod
+#    def g1_29dof_dex3_base_fix(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.76),
+#        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:
+#        """pick-place task configuration - dex3 hand"""
+#        return RobotBaseCfg.get_base_config(
+#            init_pos=init_pos,
+#            init_rot=init_rot,
+#            include_waist=False,
+#            hand_type="dex3",
+#            base_config=G129_CFG_WITH_DEX3_BASE_FIX
+#        )
+#
+#
+#    @classmethod
+#    def g1_29dof_inspire_base_fix(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.76),
+#        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:
+#        """pick-place task configuration - inspire hand"""
+#        return RobotBaseCfg.get_base_config(
+#            init_pos=init_pos,
+#            init_rot=init_rot,
+#            include_waist=False,
+#            hand_type="inspire",
+#            base_config=G129_CFG_WITH_INSPIRE_HAND
+#        )
+#    @classmethod
+#    def g1_29dof_dex1_wholebody(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.80),
+#        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:
+#        """pick-place task configuration - inspire hand"""
+#        return RobotBaseCfg.get_base_config(
+#            init_pos=init_pos,
+#            init_rot=init_rot,
+#            include_waist=True,
+#            is_have_hand=False,
+#            base_config=G129_CFG_WITH_DEX1_WHOLEBODY,
+#            update_default_joint_pos=False )
+#    @classmethod
+#    def g1_29dof_dex3_wholebody(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.80),
+#        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:
+#        """pick-place task configuration - inspire hand"""
+#        return RobotBaseCfg.get_base_config(
+#            init_pos=init_pos,
+#            init_rot=init_rot,
+#            include_waist=True,
+#            is_have_hand=False,
+#            base_config=G129_CFG_WITH_DEX3_WHOLEBODY,
+#            update_default_joint_pos=False )
+#    @classmethod
+#    def g1_29dof_inspire_wholebody(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.80),
+#        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:
+#        """pick-place task configuration - inspire hand"""
+#        return RobotBaseCfg.get_base_config(
+#            init_pos=init_pos,
+#            init_rot=init_rot,
+#            include_waist=True,
+#            is_have_hand=False,
+#            base_config=G129_CFG_WITH_INSPIRE_WHOLEBODY,
+#            update_default_joint_pos=False )
+#
 @configclass
 class H12RobotPresets:
     """H1 robot preset configuration collection
@@ -337,14 +333,14 @@ class H12RobotPresets:
         )
 
 
-    @classmethod
-    def h12_magpie(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.76),
-        init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:   
-        return RobotBaseCfg.get_base_config(
-            init_pos=init_pos,
-            init_rot=init_rot,
-            #include_waist=True,
-            #hand_type="inspire",
-            base_config=H12_CFG_WITH_MAGPIE,
-            #robot_type="h1_2"
-        )
+    #@classmethod
+    #def h12_magpie(cls,init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.76),
+    #    init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071)) -> ArticulationCfg:   
+    #    return RobotBaseCfg.get_base_config(
+    #        init_pos=init_pos,
+    #        init_rot=init_rot,
+    #        #include_waist=True,
+    #        #hand_type="inspire",
+    #        base_config=H12_CFG_WITH_MAGPIE,
+    #        #robot_type="h1_2"
+    #    )

@@ -49,6 +49,7 @@ class SharedMemoryManager:
                 if len(json_bytes) > self.size - 8:  # reserve 8 bytes for length and timestamp
                     print(f"Warning: Data too large for shared memory ({len(json_bytes)} > {self.size - 8})")
                     return False
+
                 
                 # write timestamp (4 bytes) and data length (4 bytes)
                 timestamp = int(time.time()) & 0xFFFFFFFF  # 32-bit timestamp, use bitmask to ensure in range

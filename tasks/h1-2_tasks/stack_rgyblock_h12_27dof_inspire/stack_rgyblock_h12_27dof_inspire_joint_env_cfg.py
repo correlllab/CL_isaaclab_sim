@@ -83,7 +83,7 @@ class ObservationsCfg:
         # 1. robot joint state observation
         robot_joint_state = ObsTerm(func=mdp.get_robot_boy_joint_states)
         # 2. gripper joint state observation 
-        robot_inspire_state = ObsTerm(func=mdp.get_robot_inspire_joint_states)
+        #robot_inspire_state = ObsTerm(func=mdp.get_robot_inspire_joint_states)
 
         # 3. camera image observation
         camera_image = ObsTerm(func=mdp.get_camera_image)

@@ -11,12 +11,16 @@ import os
 
 import sys
 from multiprocessing import shared_memory
+import time
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
 
 
 import torch
+
+#TODO OPTIMIZE THIS CODE TO PREVENT UNNECESSARY REPEATED INTERFACE ACQUISITIONS (JUST ASSUME INTERFACE IS GOOD AND PERSISTS)
+
 
 def get_robot_boy_joint_names() -> list[str]:
     return [

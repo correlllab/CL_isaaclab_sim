@@ -146,7 +146,7 @@ class RobotBaseCfg:
         custom_joint_pos: Optional[Dict[str, float]] = None,
         is_have_hand: bool = True,
         update_default_joint_pos: bool = True,
-        robot_type: Literal["g129dof", "h1_2"] = "g129dof",
+        robot_type: Literal["h1_2"] = "h1_2",
     ) -> ArticulationCfg:
         """get the base configuration for G1 robot
         

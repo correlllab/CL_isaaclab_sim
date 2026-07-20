@@ -38,7 +38,9 @@ class DDSActionProvider(ActionProvider):
         print(f"enable_robot: {self.enable_robot}")
         try:
             if self.enable_robot == "h1_2":
-                self.robot_dds = dds_manager.get_object("g129")
+                self.robot_dds = dds_manager.get_object("h1_2")
+            if self.robot_dds is None:
+                print("self.robot_dds: None")
 
             if self.enable_inspire:
                 self.inspire_dds = dds_manager.get_object("inspire")
@@ -143,6 +145,7 @@ class DDSActionProvider(ActionProvider):
                         self._positions_buf[:29].copy_(torch.tensor(positions[:29], dtype=torch.float32, device=self.env.device))
                         arm_vals = self._positions_buf.index_select(0, self._arm_source_idx_t)
                         full_action.index_copy_(0, self._arm_target_idx_t, arm_vals)
+                        #this full action line actually updates the joint positions in sim
             if self.inspire_dds:
                 inspire_cmds = self.inspire_dds.get_inspire_hand_command()
                 if inspire_cmds and 'positions' in inspire_cmds:

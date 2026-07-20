@@ -78,6 +78,10 @@ class H12RobotDDS(DDSObject):
             velocities = data.get("joint_velocities")
             torques = data.get("joint_torques")
 
+            #print(f"{positions=}")
+            #print(f"{velocities=}")
+            #print(f"{torques=}")
+
             if positions and velocities and torques:
                 q_array = np.asarray(positions, dtype=np.float32)
                 dq_array = np.asarray(velocities, dtype=np.float32)
@@ -100,6 +104,7 @@ class H12RobotDDS(DDSObject):
 
             self.low_state.tick += 1
             self.low_state.crc = self.crc.Crc(self.low_state)
+            #print("writing to lowstate publisher!")
             self.publisher.Write(self.low_state)
 
         except Exception as e:
@@ -168,6 +173,7 @@ class H12RobotDDS(DDSObject):
         """
         if self.input_shm is None:
             return
+
         try:
             state_data = {
                 "joint_positions": joint_positions.tolist() if hasattr(joint_positions, 'tolist') else joint_positions,

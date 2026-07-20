@@ -3,6 +3,10 @@
 # License: Apache License, Version 2.0  
 #!/usr/bin/env python3
 # main.py
+import sys
+print(sys.stdin)
+print(sys.stdin.isatty())
+#breakpoint()
 import os
 import asyncio
 
@@ -110,6 +114,10 @@ from tools.augmentation_utils import (
     update_light,
     batch_augment_cameras_by_name,
 )
+import sys
+print(sys.stdin)
+print(sys.stdin.isatty())
+#breakpoint()
 
 from tools.data_json_load import sim_state_to_json
 #from dds.sim_state_dds import *
@@ -155,25 +163,26 @@ def main():
     # import io
     # profiler = cProfile.Profile()
     # profiler.enable()
+    #breakpoint()
     import os
     import atexit
-    try:
-        os.setpgrp()
-        current_pgid = os.getpgrp()
-        print(f"Setting process group: {current_pgid}")
-        
-        def cleanup_process_group():
-            try:
-                print(f"Cleaning up process group: {current_pgid}")
-                import signal
-                os.killpg(current_pgid, signal.SIGTERM)
-            except Exception as e:
-                print(f"Failed to clean up process group: {e}")
-        
-        atexit.register(cleanup_process_group)
-        
-    except Exception as e:
-        print(f"Failed to set process group: {e}")
+    #try:
+    #    os.setpgrp()
+    #    #current_pgid = os.getpgrp()
+    #    #print(f"Setting process group: {current_pgid}")
+    #    
+    #    #def cleanup_process_group():
+    #    #    try:
+    #    #        #print(f"Cleaning up process group: {current_pgid}")
+    #    #        import signal
+    #    #        #os.killpg(current_pgid, signal.SIGTERM)
+    #    #    except Exception as e:
+    #    #        print(f"Failed to clean up process group: {e}")
+    #    #
+    #    #atexit.register(cleanup_process_group)
+    #    
+    #except Exception as e:
+    #    print(f"Failed to set process group: {e}")
     print("=" * 60)
     print("robot control system started")
     print(f"Task: {args_cli.task}")
@@ -243,35 +252,35 @@ def main():
                 print(f"[sim] render_interval set to {env.sim.render_interval}")
         except Exception as e:
             print(f"[sim] failed to configure rendering: {e}")
-        if args_cli.camera_write_interval is not None:
-            try:
-                import tasks.common_observations.camera_state as cam_state
-                cam_state._camera_cache['write_interval_steps'] = max(1, int(args_cli.camera_write_interval))
-                print(f"[camera] write interval steps set to {cam_state._camera_cache['write_interval_steps']}")
-            except Exception as e:
-                print(f"[camera] failed to set write interval: {e}")
+        #if args_cli.camera_write_interval is not None:
+        #    try:
+        #        import tasks.common_observations.camera_state as cam_state
+        #        cam_state._camera_cache['write_interval_steps'] = max(1, int(args_cli.camera_write_interval))
+        #        print(f"[camera] write interval steps set to {cam_state._camera_cache['write_interval_steps']}")
+        #    except Exception as e:
+        #        print(f"[camera] failed to set write interval: {e}")
 
-        try:
-            if args_cli.solver_iterations is not None:
-                env.sim.physx.solver_iteration_count = int(args_cli.solver_iterations)
-                print(f"[sim] solver_iteration_count={env.sim.physx.solver_iteration_count}")
-            if args_cli.physx_substeps is not None:
-                try:
-                    env.sim.physx.substeps = int(args_cli.physx_substeps)
-                except Exception:
-                    try:
-                        env.sim.set_substeps(int(args_cli.physx_substeps))
-                    except Exception:
-                        pass
-                print(f"[sim] physx_substeps set to {args_cli.physx_substeps}")
-            if args_cli.gravity_z is not None:
-                g = float(args_cli.gravity_z)
-                env.sim.physx.gravity = (0.0, 0.0, g)
-                print(f"[sim] gravity set to {env.sim.physx.gravity}")
-        except Exception as e:
-            print(f"[sim] failed to set physx params: {e}")
-        if args_cli.skip_cvtcolor:
-            os.environ["CAMERA_SKIP_CVTCOLOR"] = "1"
+        #try:
+        #    if args_cli.solver_iterations is not None:
+        #        env.sim.physx.solver_iteration_count = int(args_cli.solver_iterations)
+        #        print(f"[sim] solver_iteration_count={env.sim.physx.solver_iteration_count}")
+        #    if args_cli.physx_substeps is not None:
+        #        try:
+        #            env.sim.physx.substeps = int(args_cli.physx_substeps)
+        #        except Exception:
+        #            try:
+        #                env.sim.set_substeps(int(args_cli.physx_substeps))
+        #            except Exception:
+        #                pass
+        #        print(f"[sim] physx_substeps set to {args_cli.physx_substeps}")
+        #    if args_cli.gravity_z is not None:
+        #        g = float(args_cli.gravity_z)
+        #        env.sim.physx.gravity = (0.0, 0.0, g)
+        #        print(f"[sim] gravity set to {env.sim.physx.gravity}")
+        #except Exception as e:
+        #    print(f"[sim] failed to set physx params: {e}")
+        #if args_cli.skip_cvtcolor:
+        #    os.environ["CAMERA_SKIP_CVTCOLOR"] = "1"
         try:
             import tasks.common_observations.camera_state as cam_state
             enable_jpeg = bool(args_cli.camera_jpeg) or (os.getenv("CAMERA_JPEG") == "1")
@@ -394,6 +403,7 @@ def main():
         print("========= create dds =========")
         try:
             dds_manager = create_dds_objects(args_cli,env)
+            pass
         except Exception as e:
             print(f"Failed to create dds: {e}")
             return
@@ -473,9 +483,11 @@ def main():
         #camera_node = ros2_camera_node_py.ros2_camera_node(["/realsense/left_hand/aligned_depth_to_color/image_raw/compressed", "/realsense/right_hand/aligned_depth_to_color/image_raw/compressed","/realsense/left_hand/color/image_raw/compressed", "/realsense/right_hand/color/image_raw/compressed"])
         #cloud_node = ros2_point_cloud_node_py.ros2_point_cloud_node(["/lidar/first_link"])
         #imu_node = ros2_imu_node_py.ros2_imu_node("/imu/base_link")
+        #breakpoint()
         with contextlib.suppress(KeyboardInterrupt), torch.inference_mode():
 
             while simulation_app.is_running() and controller.is_running:
+                #breakpoint()
                 #current_time = time.time()
                 #loop_count += 1
                 if not args_cli.replay_data:
@@ -567,7 +579,6 @@ def main():
                 if env.sim.is_stopped():
                     print("\nenvironment stopped")
                     break
-                # rate_limiter.sleep(env)
     except KeyboardInterrupt:
         print("\nuser interrupted program")
     
@@ -594,58 +605,58 @@ if __name__ == "__main__":
     finally:
         print("Performing final cleanup...")
         
-        # Get current process information
-        import os
-        import subprocess
-        import signal
-        import time
-        
-        current_pid = os.getpid()
-        print(f"Current main process PID: {current_pid}")
-        
-        try:
-            # Find all related Python processes
-            result = subprocess.run(['pgrep', '-f', 'sim_main.py'], 
-                                  capture_output=True, text=True)
-            if result.returncode == 0:
-                pids = result.stdout.strip().split('\n')
-                print(f"Found related processes: {pids}")
-                
-                for pid in pids:
-                    if pid and pid != str(current_pid):
-                        try:
-                            print(f"Terminating child process: {pid}")
-                            os.kill(int(pid), signal.SIGTERM)
-                        except ProcessLookupError:
-                            print(f"Process {pid} does not exist")
-                        except Exception as e:
-                            print(f"Failed to terminate process {pid}: {e}")
-                
-                # Wait for processes to exit
-                time.sleep(2)
-                
-                # Check if there are any remaining processes, force kill them
-                result2 = subprocess.run(['pgrep', '-f', 'sim_main.py'], 
-                                       capture_output=True, text=True)
-                if result2.returncode == 0:
-                    remaining_pids = result2.stdout.strip().split('\n')
-                    for pid in remaining_pids:
-                        if pid and pid != str(current_pid):
-                            try:
-                                print(f"Force killing process: {pid}")
-                                os.kill(int(pid), signal.SIGKILL)
-                            except Exception as e:
-                                print(f"Failed to force kill process {pid}: {e}")
-                                
-        except Exception as e:
-            print(f"Error during process cleanup: {e}")
-        
-        try:
-            simulation_app.close()
-        except Exception as e:
-            print(f"Failed to close simulation application: {e}")
-            
-        print("Program exit completed")
-        
-        # Force exit
+        ## Get current process information
+        #import os
+        #import subprocess
+        #import signal
+        #import time
+        #
+        #current_pid = os.getpid()
+        #print(f"Current main process PID: {current_pid}")
+        #
+        #try:
+        #    # Find all related Python processes
+        #    result = subprocess.run(['pgrep', '-f', 'sim_main.py'], 
+        #                          capture_output=True, text=True)
+        #    if result.returncode == 0:
+        #        pids = result.stdout.strip().split('\n')
+        #        print(f"Found related processes: {pids}")
+        #        
+        #        for pid in pids:
+        #            if pid and pid != str(current_pid):
+        #                try:
+        #                    print(f"Terminating child process: {pid}")
+        #                    os.kill(int(pid), signal.SIGTERM)
+        #                except ProcessLookupError:
+        #                    print(f"Process {pid} does not exist")
+        #                except Exception as e:
+        #                    print(f"Failed to terminate process {pid}: {e}")
+        #        
+        #        # Wait for processes to exit
+        #        time.sleep(2)
+        #        
+        #        # Check if there are any remaining processes, force kill them
+        #        result2 = subprocess.run(['pgrep', '-f', 'sim_main.py'], 
+        #                               capture_output=True, text=True)
+        #        if result2.returncode == 0:
+        #            remaining_pids = result2.stdout.strip().split('\n')
+        #            for pid in remaining_pids:
+        #                if pid and pid != str(current_pid):
+        #                    try:
+        #                        print(f"Force killing process: {pid}")
+        #                        os.kill(int(pid), signal.SIGKILL)
+        #                    except Exception as e:
+        #                        print(f"Failed to force kill process {pid}: {e}")
+        #                        
+        #except Exception as e:
+        #    print(f"Error during process cleanup: {e}")
+        #
+        #try:
+        #    simulation_app.close()
+        #except Exception as e:
+        #    print(f"Failed to close simulation application: {e}")
+        #    
+        #print("Program exit completed")
+        #
+        ## Force exit
         os._exit(0)

@@ -24,7 +24,8 @@ H12_CFG_WITH_INSPIRE_HAND = ArticulationCfg(
             max_depenetration_velocity=1.0,
         ),
         articulation_props=sim_utils.ArticulationRootPropertiesCfg(
-            enabled_self_collisions=False, 
+            #enabled_self_collisions=False, 
+            enabled_self_collisions=True, 
             solver_position_iteration_count=8,
             solver_velocity_iteration_count=4
         ),
@@ -138,9 +139,9 @@ H12_CFG_WITH_INSPIRE_HAND = ArticulationCfg(
             },
             #effort_limit=None,
             #velocity_limit=None,
-            #stiffness=None,
-            #damping=None,
-            #armature=None,
+            #stiffness=20,
+            #damping=2.0,
+            #armature=0.01,
         ),
         "feet": ImplicitActuatorCfg(
             #effort_limit=None,

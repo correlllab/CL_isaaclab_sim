@@ -118,7 +118,7 @@ print(sys.stdin.isatty())
 from tools.data_json_load import sim_state_to_json
 #from dds.sim_state_dds import *
 from src.python.control.action_provider_dds import create_action_provider
-from tools.get_stiffness import get_robot_stiffness_from_env
+#from tools.get_stiffness import get_robot_stiffness_from_env
 from tools.get_reward import get_step_reward_value,get_current_rewards
 from PIL import Image
 
@@ -338,14 +338,14 @@ def main():
     print("🔍 Getting robot stiffness and damping parameters from runtime environment")
     print("="*60)
     
-    try:
-        stiffness_data = get_robot_stiffness_from_env(env)
-        if stiffness_data:
-            print("✅ Successfully got robot parameters!")
-        else:
-            print("⚠️ Failed to get robot parameters, will try again after environment reset")
-    except Exception as e:
-        print(f"⚠️ Error getting robot parameters: {e}")
+    #try:
+    #    stiffness_data = get_robot_stiffness_from_env(env)
+    #    if stiffness_data:
+    #        print("✅ Successfully got robot parameters!")
+    #    else:
+    #        print("⚠️ Failed to get robot parameters, will try again after environment reset")
+    #except Exception as e:
+    #    print(f"⚠️ Error getting robot parameters: {e}")
     
     print("="*60)
     

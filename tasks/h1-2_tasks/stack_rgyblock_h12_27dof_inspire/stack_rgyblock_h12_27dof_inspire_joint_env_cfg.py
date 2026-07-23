@@ -25,7 +25,6 @@ from tasks.common_event.event_manager import SimpleEvent, SimpleEventManager, Ba
 
 # import public scene configuration
 from tasks.common_scene.base_scene_stack_rgyblock import TableRedGreenYellowBlockSceneCfg
-from tasks.common_scene.base_scene_pickplace_cylindercfg_wholebody import TableCylinderSceneCfgWH
 
 ##
 # Scene definition

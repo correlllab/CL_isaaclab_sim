@@ -1,9 +1,9 @@
 # Copyright (c) 2025, Unitree Robotics Co., Ltd. All Rights Reserved.
 # License: Apache License, Version 2.0
-from action_base import ActionProvider
+from .action_base import ActionProvider
 from typing import Optional
 import torch
-from src.python.dds.common.dds_master import dds_manager
+from ..dds.common.dds_master import dds_manager
 
 
 def create_action_provider(env,args):

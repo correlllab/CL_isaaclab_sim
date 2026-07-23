@@ -102,7 +102,7 @@ if args_cli.enable_dex3_dds and args_cli.enable_dex1_dds and args_cli.enable_ins
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
-from RobotController import RobotController, ControlConfig
+from src.python.control.RobotController import RobotController, ControlConfig
 import tasks
 from isaaclab_tasks.utils.parse_cfg import parse_env_cfg
 
@@ -117,7 +117,7 @@ print(sys.stdin.isatty())
 
 from tools.data_json_load import sim_state_to_json
 #from dds.sim_state_dds import *
-from action_provider_dds import create_action_provider
+from src.python.control.action_provider_dds import create_action_provider
 from tools.get_stiffness import get_robot_stiffness_from_env
 from tools.get_reward import get_step_reward_value,get_current_rewards
 from PIL import Image

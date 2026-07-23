@@ -3,7 +3,7 @@ import time
 from typing import Optional, Dict, Any
 import torch
 from dataclasses import dataclass
-from action_base import ActionProvider
+from .action_base import ActionProvider
 
 
 @dataclass

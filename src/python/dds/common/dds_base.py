@@ -1,7 +1,7 @@
 # Copyright (c) 2025, Unitree Robotics Co., Ltd. All Rights Reserved.
 # License: Apache License, Version 2.0
 from abc import ABC, abstractmethod
-from dds.sharedmemorymanager import SharedMemoryManager
+from .sharedmemorymanager import SharedMemoryManager
 from typing import Any
 class DDSObject(ABC):
     def __init__(self):

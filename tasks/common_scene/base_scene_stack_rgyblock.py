@@ -342,7 +342,7 @@ class TableRedGreenYellowBlockSceneCfg(InteractiveSceneCfg): # inherit from the 
     battery = AssetBaseCfg(
         prim_path="/World/envs/env_.*/Battery",
         spawn=UsdFileCfg(
-            usd_path="/workspace/hams/isaac/battery.usd",
+            usd_path="/workspace/hams/isaac/mateo_ws/CL_Assets/isaac_assets/objects/battery.usd",
             scale=(1.0, 1.0, 1.0),
         ),
     )

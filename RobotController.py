@@ -1,27 +1,19 @@
-# Copyright (c) 2025, Unitree Robotics Co., Ltd. All Rights Reserved.
-# License: Apache License, Version 2.0  
-"""
-A layered robot control system
-"""
 
 import time
 from typing import Optional, Dict, Any
 import torch
 from dataclasses import dataclass
-from action_provider.action_base import ActionProvider
+from action_base import ActionProvider
 
 
 @dataclass
 class ControlConfig:
-    """minimal control configuration"""
     step_hz: int = 500  # the frequency of the low-level execution
     replay_mode: bool = False
     use_rl_action_mode: bool = False
 
 
 class RobotController:
-    """robot controller
-    """
     
     def __init__(self, env, config: ControlConfig):
         self.env = env

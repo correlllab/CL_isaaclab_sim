@@ -7,7 +7,7 @@ Handle the state publishing and command receiving of the gripper
 
 import threading
 from typing import Any, Dict, Optional
-from dds.dds_base import DDSObject
+from ..common.dds_base import DDSObject
 from unitree_sdk2py.core.channel import ChannelPublisher, ChannelSubscriber
 from unitree_sdk2py.idl.unitree_go.msg.dds_ import MotorCmds_, MotorStates_
 from unitree_sdk2py.idl.default import unitree_go_msg_dds__MotorCmd_, unitree_go_msg_dds__MotorState_

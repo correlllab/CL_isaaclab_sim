@@ -2,7 +2,7 @@
 import numpy as np
 from typing import Any, Dict, Optional
 # from dds.dds_base import BaseDDSNode, node_manager
-from dds.dds_base import DDSObject
+from ..common.dds_base import DDSObject
 from unitree_sdk2py.core.channel import ChannelPublisher, ChannelSubscriber
 from unitree_sdk2py.idl.unitree_hg.msg.dds_ import LowState_, LowCmd_
 from unitree_sdk2py.idl.default import unitree_hg_msg_dds__LowCmd_, unitree_hg_msg_dds__LowState_

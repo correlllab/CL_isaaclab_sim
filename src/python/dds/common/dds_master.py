@@ -4,7 +4,7 @@ import time
 import threading
 from typing import Dict, List, Optional
 from unitree_sdk2py.core.channel import ChannelFactoryInitialize
-from dds.dds_base import DDSObject
+from .dds_base import DDSObject
 
 
 

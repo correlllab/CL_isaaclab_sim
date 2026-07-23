@@ -81,7 +81,7 @@ def get_robot_arm_joint_names() -> list[str]:
     ]
 
 # global variable to cache the DDS instance
-from dds.dds_master import dds_manager
+from src.python.dds.common.dds_master import dds_manager
 _h12_robot_dds = None
 _dds_initialized = False
 
@@ -112,7 +112,7 @@ def _get_h12_robot_dds_instance():
         try:
             # dynamically import the DDS module
             sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dds'))
-            from dds.dds_master import dds_manager
+            from src.python.dds.common.dds_master import dds_manager
             print(f"dds_manager: {dds_manager}")
             _h12_robot_dds = dds_manager.get_object("h1_2")
             print("[h12_state] H12 robot DDS communication instance obtained")

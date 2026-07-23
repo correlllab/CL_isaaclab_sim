@@ -7,7 +7,7 @@ Specialized in receiving the run command
 
 import threading
 from typing import Any, Dict, Optional
-from dds.dds_base import DDSObject
+from .dds_base import DDSObject
 from unitree_sdk2py.core.channel import ChannelSubscriber
 from unitree_sdk2py.idl.std_msgs.msg.dds_ import String_
 

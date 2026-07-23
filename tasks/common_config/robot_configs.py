@@ -8,7 +8,7 @@ support different robot variants: with/without waist joint, different finger con
 
 from isaaclab.assets import ArticulationCfg
 from isaaclab.utils import configclass
-from robots.unitree import H12_CFG_WITH_INSPIRE_HAND
+from src.python.envs.common.robots import H12_CFG_WITH_INSPIRE_HAND
 from typing import Optional, Dict, Tuple, Literal
 
 

@@ -29,7 +29,7 @@ class DDSActionProvider(ActionProvider):
         self.env = env
         # Initialize DDS communication
         self.robot_dds = None
-        self.inspire_dds = None
+        #self.inspire_dds = None
         self._setup_dds()
         self._setup_joint_mapping()
     
@@ -42,8 +42,8 @@ class DDSActionProvider(ActionProvider):
             if self.robot_dds is None:
                 print("self.robot_dds: None")
 
-            if self.enable_inspire:
-                self.inspire_dds = dds_manager.get_object("inspire")
+            #if self.enable_inspire:
+            #    self.inspire_dds = dds_manager.get_object("inspire")
             print(f"[{self.name}] DDS communication initialized")
         except Exception as e:
             print(f"[{self.name}] DDS initialization failed: {e}")
@@ -68,94 +68,143 @@ class DDSActionProvider(ActionProvider):
                 "right_wrist_pitch_joint": 12,
                 "right_wrist_yaw_joint": 13
             }
+
+            self.leg_joint_mapping = {
+                    "left_hip_yaw_joint": 0,
+                    "left_hip_pitch_joint": 1,
+                    "left_hip_roll_joint": 2,
+                    "left_knee_joint": 3,
+                    "left_ankle_pitch_joint": 4,
+                    "left_ankle_roll_joint": 5,
+                    "right_hip_yaw_joint": 6,
+                    "right_hip_pitch_joint": 7,
+                    "right_hip_roll_joint": 8,
+                    "right_knee_joint": 9,
+                    "right_ankle_pitch_joint": 10,
+                    "right_ankle_roll_joint": 11,
+                    "torso_joint":12
+            }
+
+            
             print(f"self.env.scene['robot'].data.joint_names: {self.env.scene['robot'].data.joint_names}")
             self.all_joint_names = self.env.scene["robot"].data.joint_names
             self.joint_to_index = {name: i for i, name in enumerate(self.all_joint_names)}
+
+            print(f"{self.joint_to_index=}")
             self.arm_action_pose = [self.joint_to_index[name] for name in self.arm_joint_mapping.keys()]
             self.arm_action_pose_indices = [self.arm_joint_mapping[name] for name in self.arm_joint_mapping.keys()]
             self._arm_target_indices = [self.joint_to_index[name] for name in self.arm_joint_mapping.keys()]
             self._arm_source_indices = [idx + 13 for idx in self.arm_joint_mapping.values()]  # source data from positions[13:]
-        if self.enable_inspire:
-            self.inspire_hand_joint_mapping = {
-                "R_pinky_proximal_joint":0,
-                "R_ring_proximal_joint":1,
-                "R_middle_proximal_joint":2,
-                "R_index_proximal_joint":3,
-                "R_thumb_proximal_pitch_joint":4,
-                "R_thumb_proximal_yaw_joint":5,
-                "L_pinky_proximal_joint":6,
-                "L_ring_proximal_joint":7,
-                "L_middle_proximal_joint":8,
-                "L_index_proximal_joint":9,
-                "L_thumb_proximal_pitch_joint":10,
-                "L_thumb_proximal_yaw_joint":11,
-            }
-            self.special_joint_mapping = {
-                "L_index_intermediate_joint":[9,1],
-                "L_middle_intermediate_joint":[8,1],
-                "L_pinky_intermediate_joint":[6,1],
-                "L_ring_intermediate_joint":[7,1],
-                "L_thumb_intermediate_joint":[10,1.5],
-                "L_thumb_distal_joint":[10,2.4],
 
-                "R_index_intermediate_joint":[3,1],
-                "R_middle_intermediate_joint":[2,1],
-                "R_pinky_intermediate_joint":[0,1],
-                "R_ring_intermediate_joint":[1,1],
-                "R_thumb_intermediate_joint":[4,1.5],
-                "R_thumb_distal_joint":[4,2.4],
-            }
 
-        
-        # precompute indices (for vectorization)
+            print(f"{self._arm_target_indices=}")
+            print(f"{self._arm_source_indices=}")
 
-        if self.enable_inspire:
-            self._inspire_target_indices = [self.joint_to_index[name] for name in self.inspire_hand_joint_mapping.keys()]
-            self._inspire_source_indices = [idx for idx in self.inspire_hand_joint_mapping.values()]
-            self._inspire_special_target_indices = [self.joint_to_index[name] for name in self.special_joint_mapping.keys()]
-            self._inspire_special_source_indices = [spec[0] for spec in self.special_joint_mapping.values()]
-            self._inspire_special_scales = torch.tensor([spec[1] for spec in self.special_joint_mapping.values()], dtype=torch.float32)
+
+            self.leg_action_pose = [self.joint_to_index[name] for name in self.leg_joint_mapping.keys()]
+            self.leg_action_pose_indices = [self.leg_joint_mapping[name] for name in self.leg_joint_mapping.keys()]
+            self._leg_target_indices = [self.joint_to_index[name] for name in self.leg_joint_mapping.keys()]
+            print(f"{self._leg_target_indices=}")
+            self._leg_source_indices = [idx for idx in self.leg_joint_mapping.values()]
+            print(f"{self._leg_source_indices=}")
+
+
+
+
+        #if self.enable_inspire:
+        #    self.inspire_hand_joint_mapping = {
+        #        "R_pinky_proximal_joint":0,
+        #        "R_ring_proximal_joint":1,
+        #        "R_middle_proximal_joint":2,
+        #        "R_index_proximal_joint":3,
+        #        "R_thumb_proximal_pitch_joint":4,
+        #        "R_thumb_proximal_yaw_joint":5,
+        #        "L_pinky_proximal_joint":6,
+        #        "L_ring_proximal_joint":7,
+        #        "L_middle_proximal_joint":8,
+        #        "L_index_proximal_joint":9,
+        #        "L_thumb_proximal_pitch_joint":10,
+        #        "L_thumb_proximal_yaw_joint":11,
+        #    }
+        #    self.special_joint_mapping = {
+        #        "L_index_intermediate_joint":[9,1],
+        #        "L_middle_intermediate_joint":[8,1],
+        #        "L_pinky_intermediate_joint":[6,1],
+        #        "L_ring_intermediate_joint":[7,1],
+        #        "L_thumb_intermediate_joint":[10,1.5],
+        #        "L_thumb_distal_joint":[10,2.4],
+
+        #        "R_index_intermediate_joint":[3,1],
+        #        "R_middle_intermediate_joint":[2,1],
+        #        "R_pinky_intermediate_joint":[0,1],
+        #        "R_ring_intermediate_joint":[1,1],
+        #        "R_thumb_intermediate_joint":[4,1.5],
+        #        "R_thumb_distal_joint":[4,2.4],
+        #    }
+
+        #
+        ## precompute indices (for vectorization)
+
+        #if self.enable_inspire:
+        #    self._inspire_target_indices = [self.joint_to_index[name] for name in self.inspire_hand_joint_mapping.keys()]
+        #    self._inspire_source_indices = [idx for idx in self.inspire_hand_joint_mapping.values()]
+        #    self._inspire_special_target_indices = [self.joint_to_index[name] for name in self.special_joint_mapping.keys()]
+        #    self._inspire_special_source_indices = [spec[0] for spec in self.special_joint_mapping.values()]
+        #    self._inspire_special_scales = torch.tensor([spec[1] for spec in self.special_joint_mapping.values()], dtype=torch.float32)
         
         device = self.env.device
         self._arm_target_idx_t = torch.tensor(self._arm_target_indices, dtype=torch.long, device=device)
         self._arm_source_idx_t = torch.tensor(self._arm_source_indices, dtype=torch.long, device=device)
-        if self.enable_inspire:
-            self._inspire_target_idx_t = torch.tensor(self._inspire_target_indices, dtype=torch.long, device=device)
-            self._inspire_source_idx_t = torch.tensor(self._inspire_source_indices, dtype=torch.long, device=device)
-            self._inspire_special_target_idx_t = torch.tensor(self._inspire_special_target_indices, dtype=torch.long, device=device)
-            self._inspire_special_source_idx_t = torch.tensor(self._inspire_special_source_indices, dtype=torch.long, device=device)
-            self._inspire_special_scales_t = self._inspire_special_scales.to(device)
+
+        self._leg_target_idx_t = torch.tensor(self._leg_target_indices, dtype=torch.long, device=device)
+        self._leg_source_idx_t = torch.tensor(self._leg_source_indices, dtype=torch.long, device=device)
+        #if self.enable_inspire:
+        #    self._inspire_target_idx_t = torch.tensor(self._inspire_target_indices, dtype=torch.long, device=device)
+        #    self._inspire_source_idx_t = torch.tensor(self._inspire_source_indices, dtype=torch.long, device=device)
+        #    self._inspire_special_target_idx_t = torch.tensor(self._inspire_special_target_indices, dtype=torch.long, device=device)
+        #    self._inspire_special_source_idx_t = torch.tensor(self._inspire_special_source_indices, dtype=torch.long, device=device)
+        #    self._inspire_special_scales_t = self._inspire_special_scales.to(device)
         
         self._full_action_buf = torch.zeros(len(self.all_joint_names), device=device, dtype=torch.float32)
         self._positions_buf = torch.empty(29, device=device, dtype=torch.float32)
-        if self.enable_inspire:
-            self._inspire_buf = torch.empty(12, device=device, dtype=torch.float32)
+        #if self.enable_inspire:
+        #    self._inspire_buf = torch.empty(12, device=device, dtype=torch.float32)
     
     def get_action(self, env) -> Optional[torch.Tensor]:
         """Get action from DDS"""
         try:
 
+            print('tessssssssssssssssst')
             full_action = self._full_action_buf
             full_action.zero_()
             if self.enable_robot == "h1_2" and self.robot_dds:
+                print("222222")
                 cmd_data = self.robot_dds.get_robot_command()
+
+                print("333333")
+                print(cmd_data)
                 if cmd_data and 'motor_cmd' in cmd_data:
                     positions = cmd_data['motor_cmd']['positions']
+                    print(list(enumerate(positions)))
+                    print(f"{len(positions)=}")
+                    print(f"{len(self.all_joint_names)=}")
                     if len(positions) >= 29:
                         self._positions_buf[:29].copy_(torch.tensor(positions[:29], dtype=torch.float32, device=self.env.device))
                         arm_vals = self._positions_buf.index_select(0, self._arm_source_idx_t)
+                        leg_vals = self._positions_buf.index_select(0, self._leg_source_idx_t)
                         full_action.index_copy_(0, self._arm_target_idx_t, arm_vals)
+                        full_action.index_copy_(0, self._leg_target_idx_t, leg_vals)
                         #this full action line actually updates the joint positions in sim
-            if self.inspire_dds:
-                inspire_cmds = self.inspire_dds.get_inspire_hand_command()
-                if inspire_cmds and 'positions' in inspire_cmds:
-                        inspire_cmds_positions = inspire_cmds['positions']
-                        if len(inspire_cmds_positions) >= 12:
-                            self._inspire_buf.copy_(torch.tensor(inspire_cmds_positions[:12], dtype=torch.float32, device=self.env.device))
-                            base_vals = self._inspire_buf.index_select(0, self._inspire_source_idx_t)
-                            full_action.index_copy_(0, self._inspire_target_idx_t, base_vals)
-                            special_vals = self._inspire_buf.index_select(0, self._inspire_special_source_idx_t) * self._inspire_special_scales_t
-                            full_action.index_copy_(0, self._inspire_special_target_idx_t, special_vals)
+            #if self.inspire_dds:
+            #    inspire_cmds = self.inspire_dds.get_inspire_hand_command()
+            #    if inspire_cmds and 'positions' in inspire_cmds:
+            #            inspire_cmds_positions = inspire_cmds['positions']
+            #            if len(inspire_cmds_positions) >= 12:
+            #                self._inspire_buf.copy_(torch.tensor(inspire_cmds_positions[:12], dtype=torch.float32, device=self.env.device))
+            #                base_vals = self._inspire_buf.index_select(0, self._inspire_source_idx_t)
+            #                full_action.index_copy_(0, self._inspire_target_idx_t, base_vals)
+            #                special_vals = self._inspire_buf.index_select(0, self._inspire_special_source_idx_t) * self._inspire_special_scales_t
+            #                full_action.index_copy_(0, self._inspire_special_target_idx_t, special_vals)
             return full_action.unsqueeze(0)
             
         except Exception as e:

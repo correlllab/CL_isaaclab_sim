@@ -25,10 +25,10 @@ import torch
 def get_robot_boy_joint_names() -> list[str]:
     return [
         # leg joints (12)
-        # left leg (6)
+        # left leg (6)all_joint_names
         "left_hip_pitch_joint",
         "left_hip_roll_joint",
-        "geometry/pelvis/left_hip_yaw_link/left_hip_yaw_joint",
+        "left_hip_yaw_joint",
         "left_knee_joint",
         "left_ankle_pitch_joint",
         "left_ankle_roll_joint",
@@ -39,6 +39,7 @@ def get_robot_boy_joint_names() -> list[str]:
         "right_knee_joint",
         "right_ankle_pitch_joint",
         "right_ankle_roll_joint",
+        "torso_joint",
         # arm joints (14)
         # left arm (7)
         "left_shoulder_pitch_joint",
@@ -153,21 +154,35 @@ def get_robot_boy_joint_states(
     """
     # get all joint states
     joint_pos = env.scene["robot"].data.joint_pos
+    print(f"{joint_pos=}")
+
     joint_vel = env.scene["robot"].data.joint_vel
+
+    print(f"{joint_vel=}")
     joint_torque = env.scene["robot"].data.applied_torque  # use applied_torque to get joint torques
+
+    print(f"{joint_torque=}")
     device = joint_pos.device
     batch = joint_pos.shape[0]
 
     # get the body joint indices
-    # boy_joint_names = get_robot_boy_joint_names()
-    # all_joint_names = env.scene["robot"].data.joint_names
-    # boy_joint_indices = [all_joint_names.index(name) for name in boy_joint_names]
+    boy_joint_names = get_robot_boy_joint_names()
+    all_joint_names = env.scene["robot"].data.joint_names
+    boy_joint_indices = [all_joint_names.index(name) for name in boy_joint_names]
     # print(f"boy_joint_indices: {boy_joint_indices}")
 
     # 预计算并缓存索引张量（列索引）
     global _obs_cache
-    if _obs_cache["device"] != device or _obs_cache["boy_idx_t"] is None:
-        boy_joint_indices = [3, 7, 0, 11, 15, 19, 4, 8, 1, 12, 16, 20, 5, 9, 13, 17, 21, 23, 25, 6, 10, 14, 18, 22, 24, 26]
+    #if _obs_cache["device"] != device or _obs_cache["boy_idx_t"] is None:
+    if True:
+
+        all_joint_names = env.scene["robot"].data.joint_names
+        print(f"{all_joint_names=}")
+
+        boy_joint_indices = [all_joint_names.index(name) for name in boy_joint_names]
+        print(f"{boy_joint_indices=}")
+
+        #boy_joint_indices = [3, 7, 0, 11, 15, 19, 4, 8, 1, 12, 16, 20, 5, 9, 13, 17, 21, 23, 25, 6, 10, 14, 18, 22, 24, 26]
 #[0, 3, 6, 9, 13, 17, 1, 4, 7, 10, 14, 18, 2, 5, 8, 11, 15, 19, 21, 23, 25, 27, 12, 16, 20, 22, 24, 26, 28]
         _obs_cache["boy_idx_t"] = torch.tensor(boy_joint_indices, dtype=torch.long, device=device)
         _obs_cache["device"] = device

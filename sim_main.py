@@ -288,6 +288,11 @@ def main():
             cam_state.set_writer_options(enable_jpeg=enable_jpeg, jpeg_quality=jpeg_quality, skip_cvtcolor=args_cli.skip_cvtcolor)
             include = [n.strip() for n in (args_cli.camera_include or "").split(',') if n.strip()]
             exclude = [n.strip() for n in (args_cli.camera_exclude or "").split(',') if n.strip()]
+            import omni.kit.viewport.utility as vu
+            from pxr import Sdf
+
+            vp_api = vu.get_active_viewport()
+            vp_api.camera_path = "/World/PerspectiveCamera"
             try:
                 cam_state.set_camera_allowlist(include)
             except Exception:

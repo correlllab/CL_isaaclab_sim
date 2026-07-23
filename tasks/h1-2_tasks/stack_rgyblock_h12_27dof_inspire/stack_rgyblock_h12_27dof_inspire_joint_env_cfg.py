@@ -17,6 +17,7 @@ from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.utils import configclass
 from isaaclab.assets import ArticulationCfg
 from . import mdp
+from isaaclab.envs import ViewerCfg
 # use Isaac Lab native event system
 
 from tasks.common_config import  H12RobotPresets, CameraPresets, ImuPresets, RayCasterPresets  # isort: skip
@@ -40,23 +41,24 @@ class ObjectTableSceneCfg(TableRedGreenYellowBlockSceneCfg):
     
     # Humanoid robot w/ arms higher
     # 5. humanoid robot configuration 
-    #robot: ArticulationCfg = H12RobotPresets.h12_27dof_inspire_base_fix(init_pos=(0.0, 0.0, 1.0),
+    #robot: ArticulationCfg = H12RobotPresets.h12_27dof_inspire_base_fix(init_pos=(0.0, 0.0, 1.2),
         #init_rot=(0.7071, 0, 0, -0.7071))
     robot: ArticulationCfg = H12RobotPresets.h12_27dof_inspire_base_fix(init_pos=(0.0, 0.0, 1.0),
         init_rot=(0.7071, 0, 0, -0.7071))
 
 
+    
     # 6. add camera configuration 
-    front_camera = CameraPresets.h12_front_camera()
-    left_wrist_camera = CameraPresets.left_inspire_wrist_camera()
-    right_wrist_camera = CameraPresets.right_inspire_wrist_camera()
+    #front_camera = CameraPresets.h12_front_camera()
+    #left_wrist_camera = CameraPresets.left_inspire_wrist_camera()
+    #right_wrist_camera = CameraPresets.right_inspire_wrist_camera()
 
-    correll_cam_0 = CameraPresets.correll_camera_0()
+    #correll_cam_0 = CameraPresets.correll_camera_0()
     #correll_cam_1 = CameraPresets.correll_camera_1()
     #correll_cam_2 = CameraPresets.correll_camera_2()
-    imu = ImuPresets.livox_imu()
+    #imu = ImuPresets.livox_imu()
 
-    lidar = RayCasterPresets.livox_lidar()
+    #lidar = RayCasterPresets.livox_lidar()
 
 ##
 # MDP settings
@@ -86,7 +88,7 @@ class ObservationsCfg:
         #robot_inspire_state = ObsTerm(func=mdp.get_robot_inspire_joint_states)
 
         # 3. camera image observation
-        camera_image = ObsTerm(func=mdp.get_camera_image)
+        #camera_image = ObsTerm(func=mdp.get_camera_image)
 
 
         #imu_state = ObsTerm(func=mdp.get_imu_state)
@@ -109,54 +111,57 @@ class TerminationsCfg:
     # check if the object is out of the working range
     success = DoneTerm(func=mdp.reset_object_estimate)# use task completion check function
 
+def get_reward(env):
+    return -1.0
 @configclass
 class RewardsCfg:
 
-    reward = RewTerm(func=mdp.compute_reward,weight=1.0)
+    reward = RewTerm(func=get_reward,weight=1.0)
 
 @configclass
 class EventCfg:
-    reset_red_block = EventTermCfg(
-        func=mdp.reset_root_state_uniform,  # use uniform distribution reset function
-        mode="reset",   # set event mode to reset
-        params={
-            # position range parameter
-            "pose_range": {
-                "x": [-0.00, 0.00],  # x axis position range: -0.05 to 0.0 meter
-                "y": [-0.00, 0.00],   # y axis position range: 0.0 to 0.05 meter
-            },
-            # speed range parameter (empty dictionary means using default value)
-            "velocity_range": {},
-            # specify the object to reset
-            "asset_cfg": SceneEntityCfg("red_block"),
-        },
-    )
-    reset_yellow_block = EventTermCfg(
-        func=mdp.reset_root_state_uniform,  # use uniform distribution reset function
-        mode="reset",   # set event mode to reset
-        params={
-            "pose_range": {
-                "x": [-0.00, 0.00],  # x axis position range: -0.05 to 0.0 meter
-                "y": [-0.00, 0.00],   # y axis position range: 0.0 to 0.05 meter
-            },
-            # speed range parameter (empty dictionary means using default value)
-            "velocity_range": {},
-            "asset_cfg": SceneEntityCfg("yellow_block"),
-        },
-    )   
-    reset_green_block = EventTermCfg(
-        func=mdp.reset_root_state_uniform,  # use uniform distribution reset function
-        mode="reset",   # set event mode to reset
-        params={
-            "pose_range": {
-                "x": [-0.00, 0.00],  # x axis position range: -0.05 to 0.0 meter
-                "y": [-0.00, 0.00],   # y axis position range: 0.0 to 0.05 meter
-            },
-            # speed range parameter (empty dictionary means using default value)
-            "velocity_range": {},
-            "asset_cfg": SceneEntityCfg("green_block"),
-        },
-    )   
+    pass
+    #reset_red_block = EventTermCfg(
+    #    func=mdp.reset_root_state_uniform,  # use uniform distribution reset function
+    #    mode="reset",   # set event mode to reset
+    #    params={
+    #        # position range parameter
+    #        "pose_range": {
+    #            "x": [-0.00, 0.00],  # x axis position range: -0.05 to 0.0 meter
+    #            "y": [-0.00, 0.00],   # y axis position range: 0.0 to 0.05 meter
+    #        },
+    #        # speed range parameter (empty dictionary means using default value)
+    #        "velocity_range": {},
+    #        # specify the object to reset
+    #        "asset_cfg": SceneEntityCfg("red_block"),
+    #    },
+    #)
+    #reset_yellow_block = EventTermCfg(
+    #    func=mdp.reset_root_state_uniform,  # use uniform distribution reset function
+    #    mode="reset",   # set event mode to reset
+    #    params={
+    #        "pose_range": {
+    #            "x": [-0.00, 0.00],  # x axis position range: -0.05 to 0.0 meter
+    #            "y": [-0.00, 0.00],   # y axis position range: 0.0 to 0.05 meter
+    #        },
+    #        # speed range parameter (empty dictionary means using default value)
+    #        "velocity_range": {},
+    #        "asset_cfg": SceneEntityCfg("yellow_block"),
+    #    },
+    #)   
+    #reset_green_block = EventTermCfg(
+    #    func=mdp.reset_root_state_uniform,  # use uniform distribution reset function
+    #    mode="reset",   # set event mode to reset
+    #    params={
+    #        "pose_range": {
+    #            "x": [-0.00, 0.00],  # x axis position range: -0.05 to 0.0 meter
+    #            "y": [-0.00, 0.00],   # y axis position range: 0.0 to 0.05 meter
+    #        },
+    #        # speed range parameter (empty dictionary means using default value)
+    #        "velocity_range": {},
+    #        "asset_cfg": SceneEntityCfg("green_block"),
+    #    },
+    #)   
 
 @configclass
 class StackRgyBlockH1227dofInspireBaseFixEnvCfg(ManagerBasedRLEnvCfg):
@@ -167,8 +172,8 @@ class StackRgyBlockH1227dofInspireBaseFixEnvCfg(ManagerBasedRLEnvCfg):
     # 1. scene settings
     scene: ObjectTableSceneCfg = ObjectTableSceneCfg(num_envs=1, # environment number: 1
                                                      env_spacing=2.5, # environment spacing: 2.5 meter
-                                                     replicate_physics=True # enable physics replication
-                                                     )
+                                                     replicate_physics=True, # enable physics replication
+    )
     # basic settings
     observations: ObservationsCfg = ObservationsCfg()   # observation configuration
     actions: ActionsCfg = ActionsCfg()                  # action configuration
@@ -200,12 +205,12 @@ class StackRgyBlockH1227dofInspireBaseFixEnvCfg(ManagerBasedRLEnvCfg):
         # create event manager
         self.event_manager = SimpleEventManager() 
 
-        self.event_manager.register_multi_object_reset(
-            name="reset_object_self",
-            object_names=["red_block", "yellow_block", "green_block"],
-            pose_ranges={"x": [-0.05, 0.05], "y": [-0.05, 0.05]},  # 所有物体使用相同范围
-            velocity_ranges={}
-        )
+        #self.event_manager.register_multi_object_reset(
+        #    name="reset_object_self",
+        #    object_names=["red_block", "yellow_block", "green_block"],
+        #    pose_ranges={"x": [-0.05, 0.05], "y": [-0.05, 0.05]},  # 所有物体使用相同范围
+        #    velocity_ranges={}
+        #)
         
         # 方法2：如果需要为不同物体设置不同的重置范围，可以使用这种方式
         # self.event_manager.register("reset_object_self", BatchObjectEvent(
@@ -239,8 +244,8 @@ class StackRgyBlockH1227dofInspireBaseFixEnvCfg(ManagerBasedRLEnvCfg):
         #     ]
         # ))
         
-        self.event_manager.register("reset_all_self", SimpleEvent(
-            func=lambda env: base_mdp.reset_scene_to_default(
-                env,
-                torch.arange(env.num_envs, device=env.device))
-        ))
+        #self.event_manager.register("reset_all_self", SimpleEvent(
+        #    func=lambda env: base_mdp.reset_scene_to_default(
+        #        env,
+        #        torch.arange(env.num_envs, device=env.device))
+        #))

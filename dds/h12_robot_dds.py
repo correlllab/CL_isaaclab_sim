@@ -135,6 +135,7 @@ class H12RobotDDS(DDSObject):
             
             # extract the command data
             num_cmd_motors = len(msg.motor_cmd)
+            print(f"{num_cmd_motors=}")
             cmd_data = {
                 "mode_pr": int(msg.mode_pr),
                 "mode_machine": int(msg.mode_machine),
@@ -159,7 +160,9 @@ class H12RobotDDS(DDSObject):
             Dict: the robot control command, return None if there is no new command
         """
         if self.output_shm:
-            return self.output_shm.read_data()
+            data = self.output_shm.read_data()
+            print(f"{data=}")
+            return data
         return None
     
     def write_robot_state(self, joint_positions, joint_velocities, joint_torques, imu_data):

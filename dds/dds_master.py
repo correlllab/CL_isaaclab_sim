@@ -148,8 +148,6 @@ class DDSManager:
                 next_due = None
                 for name in self._pub_list:
                     obj = self.objects.get(name)
-                    print(f"{name=}")
-                    print(f"{obj=}")
                     if obj is None or not obj.publishing:
                         continue
                     interval = self._pub_interval.get(name, self._default_pub_interval)
@@ -157,7 +155,6 @@ class DDSManager:
                     if now >= due:
                         try:
                             obj.dds_publisher()
-                            #print(f"{now}: {self}; {self.objects}")
                         except Exception as e:
                             print(f"[DDSManager] object '{name}' publish failed: {e}")
                         # schedule next
@@ -167,7 +164,6 @@ class DDSManager:
                     if next_due is None or nd < next_due:
                         next_due = nd
                 # dynamic sleep until the nearest due, minimum lower bound
-                print(f"{next_due=}")
                 if next_due is not None:
                     sleep_time = max(0.0002, next_due - time.perf_counter())
                     time.sleep(sleep_time)

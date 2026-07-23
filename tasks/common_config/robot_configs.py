@@ -137,6 +137,7 @@ class RobotBaseCfg:
     @classmethod
     def get_base_config(
         cls,
+        #prim_path: str = "/World/envs/env_.*/h1_2_26dof_with_inspire_rev_1_0",
         prim_path: str = "/World/envs/env_.*/Robot",
         init_pos: Tuple[float, float, float] = (-0.15, 0.0, 0.744),
         init_rot: Tuple[float, float, float, float] = (0.7071, 0, 0, 0.7071),

@@ -24,7 +24,7 @@ from tasks.common_config import  H12RobotPresets, CameraPresets, ImuPresets, Ray
 from tasks.common_event.event_manager import SimpleEvent, SimpleEventManager, BatchObjectEvent, MultiObjectEvent
 
 # import public scene configuration
-from tasks.common_scene.base_scene_stack_rgyblock import TableRedGreenYellowBlockSceneCfg
+from src.python.envs.common.scene import TableRedGreenYellowBlockSceneCfg
 
 ##
 # Scene definition

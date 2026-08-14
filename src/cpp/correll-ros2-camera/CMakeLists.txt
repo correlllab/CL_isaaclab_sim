@@ -15,11 +15,11 @@ find_package(sensor_msgs REQUIRED)
 set(PYBIND11_PYTHON_VERSION "3.11")
 
 set(LIBJPEG_TURBO_LIB
-  /workspace/hams/isaac/libjpeg-turbo/build/libturbojpeg.so
+  /workspace/golem/isaac/libjpeg-turbo/build/libturbojpeg.so
 )
 
 set(LIBJPEG_TURBO_INCLUDE
-  /workspace/hams/isaac/libjpeg-turbo/src
+  /workspace/golem/isaac/libjpeg-turbo/src
 )
 
 #set(NVJPEG_LIB
@@ -33,7 +33,7 @@ set(LIBJPEG_TURBO_INCLUDE
 #)
 
 set(CORRELL_COMMON_INCLUDE
-  /workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-common/include
+  /workspace/golem/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-common/include
 )
 
 add_library(${PROJECT_NAME} SHARED
@@ -49,7 +49,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CORRELL_COMMON_INCLUDE}
     ${Python3_INCLUDE_DIRS}
     #${CUDA_INCLUDE}
-    /workspace/hams/isaac/libjpeg-turbo/src
+    /workspace/golem/isaac/libjpeg-turbo/src
     #/isaac-sim/kit/python/lib/python3.11/site-packages/nvidia/cu13/include
     #/isaac-sim/kit/python/lib/python3.11/site-packages/triton/backends/nvidia/include
     /opt/ros/jazzy/include/rclcpp
@@ -77,7 +77,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME} PUBLIC 
     pybind11::module
     #${NVJPEG_LIB}
-    /workspace/hams/isaac/libjpeg-turbo/build/libturbojpeg.so
+    /workspace/golem/isaac/libjpeg-turbo/build/libturbojpeg.so
     #/isaac-sim/kit/python/lib/python3.11/site-packages/nvidia/cu13/lib/libcudart.so.13
     sensor_msgs::sensor_msgs
     std_msgs::std_msgs

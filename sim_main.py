@@ -144,9 +144,9 @@ def setup_signal_handlers(controller,dds_manager=None,image_server=None):
     signal.signal(signal.SIGTERM, signal_handler)
 
 
-sys.path.append("/workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-ros2-camera/build")
-sys.path.append("/workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-ros2-imu/build")
-sys.path.append("/workspace/hams/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-ros2-cloud/build")
+sys.path.append("/workspace/golem/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-ros2-camera/build")
+sys.path.append("/workspace/golem/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-ros2-imu/build")
+sys.path.append("/workspace/golem/isaac/mateo_ws/CL_isaaclab_sim/src/cpp/correll-ros2-cloud/build")
 
 #import ros2_point_cloud_node_py
 #import ros2_camera_node_py

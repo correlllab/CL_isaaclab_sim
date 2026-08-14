@@ -4,7 +4,7 @@
 
 ## Installation
 
-Not advised to clone individually unless you know what you are doing, follow the installation directions on CorrellLab/HAMS.
+Not advised to clone individually unless you know what you are doing, follow the installation directions on CorrellLab/GOLEM.
 
 ## Acknowledgements
 

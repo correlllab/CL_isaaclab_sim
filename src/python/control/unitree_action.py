@@ -3,6 +3,7 @@ import torch
 from isaaclab.managers import ActionTerm, ActionTermCfg
 from isaaclab.utils import configclass
 from .motor_contract import BODY_JOINT_NAMES, HAND_JOINT_NAMES, ACTION_DIM, BODY_ACTION_DIM
+from .robot_variant import robot_variant
 
 
 class UnitreeMotorAction(ActionTerm):
@@ -11,9 +12,10 @@ class UnitreeMotorAction(ActionTerm):
         super().__init__(cfg, env)
         names = self._asset.data.joint_names
         self._body_ids = [names.index(name) for name in BODY_JOINT_NAMES]
-        self._hand_ids = [names.index(name) for name in HAND_JOINT_NAMES]
+        variant = robot_variant(cfg.hand_type)
+        self._hand_ids = [names.index(name) for name in variant.hand_joints]
         self._coupled_ids, sources, scales = [], [], []
-        for side, offset in (('R', 0), ('L', 6)):
+        for side, offset in ((('R', 0), ('L', 6)) if variant.inspire else ()):
             for name, source, scale in (('pinky_intermediate',0,1.), ('ring_intermediate',1,1.),
                                         ('middle_intermediate',2,1.), ('index_intermediate',3,1.),
                                         ('thumb_intermediate',4,1.5), ('thumb_distal',4,2.4)):
@@ -67,8 +69,9 @@ class UnitreeMotorAction(ActionTerm):
         self._asset.set_joint_effort_target(effort, joint_ids=self._body_ids)
         hands = self._raw_actions[:, BODY_ACTION_DIM:]
         self._asset.set_joint_position_target(hands, joint_ids=self._hand_ids)
-        self._asset.set_joint_position_target(hands[:, self._hand_sources] * self._hand_scales,
-                                             joint_ids=self._coupled_ids)
+        if self._coupled_ids:
+            self._asset.set_joint_position_target(hands[:, self._hand_sources] * self._hand_scales,
+                                                 joint_ids=self._coupled_ids)
 
     def reset(self, env_ids=None):
         ids = slice(None) if env_ids is None else env_ids
@@ -81,3 +84,4 @@ class UnitreeMotorAction(ActionTerm):
 class UnitreeMotorActionCfg(ActionTermCfg):
     class_type: type = UnitreeMotorAction
     asset_name: str = 'robot'
+    hand_type: str = 'inspire'

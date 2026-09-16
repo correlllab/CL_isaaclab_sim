@@ -16,6 +16,8 @@ def main():
     parser.add_argument('--robot_type', choices=['h1_2'], default='h1_2')
     parser.add_argument('--action_source', choices=['dds'], default='dds')
     parser.add_argument('--enable_inspire_dds', action='store_true')
+    parser.add_argument('--hand_type', choices=['magpie', 'inspire'], default='magpie')
+    parser.add_argument('--fix_base', action='store_true', help='Fix the root for bench tests; Magpie normally floats')
     parser.add_argument('--step_hz', type=float, default=None,
                         help='Wall-clock control frequency; default matches the environment step time')
     parser.add_argument('--physics_dt', type=float, default=None)
@@ -29,6 +31,9 @@ def main():
                         help='Exit after this many environment steps (0 runs until stopped)')
     AppLauncher.add_app_launcher_args(parser)
     args = parser.parse_args()
+    if args.enable_inspire_dds:
+        args.hand_type = 'inspire'
+    args.enable_inspire_dds = args.hand_type == 'inspire'
     if args.physics_dt is not None and not 0 < args.physics_dt < float('inf'):
         parser.error('--physics_dt must be finite and positive')
     if args.step_hz is not None and not 0 < args.step_hz < float('inf'):
@@ -61,6 +66,8 @@ def main():
         from src.python.sensors.ros_sensor_bridge import RosSensorBridge
 
         cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
+        from tasks.common_config.robot_variant_config import configure_robot_variant
+        configure_robot_variant(cfg, args.hand_type, args.fix_base)
         cfg.seed = args.seed
         if args.physics_dt is not None:
             cfg.sim.dt = args.physics_dt
@@ -84,6 +91,12 @@ def main():
         env.reset()
         sensors = RosSensorBridge(env.scene)
         resources.callback(sensors.close)
+        if args.hand_type == 'magpie':
+            from src.python.sensors.magpie_bridge import MagpieBridge
+            from src.python.control.magpie_control import MagpieController
+            magpie_bridge = MagpieBridge()
+            resources.callback(magpie_bridge.close)
+            env.magpie_controller = MagpieController(env.scene['robot'], magpie_bridge)
         dds = create_dds_objects(args, env)
         resources.callback(dds.stop_all_communication)
         controller = RobotController(env, ControlConfig(step_hz=args.step_hz or 1 / env.step_dt))
@@ -102,7 +115,10 @@ def main():
         with torch.inference_mode():
             while app.is_running() and controller.is_running:
                 controller.step()
-                sensors.publish(env._sim_step_counter * env.physics_dt)
+                sim_time = env._sim_step_counter * env.physics_dt
+                sensors.publish(sim_time)
+                if args.hand_type == 'magpie':
+                    env.magpie_controller.publish(sim_time)
                 if env.sim.is_stopped() or (args.max_steps and controller.step_count >= args.max_steps):
                     break
         print(f'[isaac] completed {controller.step_count} steps', flush=True)

@@ -58,6 +58,8 @@ class DDSActionProvider(ActionProvider):
                 positions = torch.tensor(hand['positions'], dtype=torch.float32, device=env.device)
                 if torch.isfinite(positions).all():
                     self._action[0, BODY_ACTION_DIM:].copy_(positions)
+        if getattr(env, "magpie_controller", None) is not None:
+            self._action[0, BODY_ACTION_DIM:].copy_(env.magpie_controller.get_joint_targets(env.step_dt))
         return self._action
 
     def cleanup(self):

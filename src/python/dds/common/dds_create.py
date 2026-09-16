@@ -3,6 +3,8 @@
 from .dds_master import dds_manager
 
 def create_dds_objects(args_cli,env):
+    # The ROS RMW node must create the shared Cyclone domain first.
+    dds_manager._init_dds()
     publish_names = []
     subscribe_names = []
     if args_cli.robot_type=="h1_2":

@@ -3,7 +3,7 @@ import numpy as np
 from typing import Any, Dict, Optional
 # from dds.dds_base import BaseDDSNode, node_manager
 from ..common.dds_base import DDSObject
-from unitree_sdk2py.core.channel import ChannelPublisher, ChannelSubscriber
+from ..common.transport import ChannelPublisher, ChannelSubscriber
 from unitree_sdk2py.idl.unitree_hg.msg.dds_ import LowState_, LowCmd_
 from unitree_sdk2py.idl.default import unitree_hg_msg_dds__LowCmd_, unitree_hg_msg_dds__LowState_
 from unitree_sdk2py.utils.crc import CRC
@@ -28,13 +28,14 @@ class H12RobotDDS(DDSObject):
         self.crc = CRC()
         self.low_state = unitree_hg_msg_dds__LowState_()
         self._initialized = True
+        self._command_sequence = 0
         
         # setup the shared memory
         self.setup_shared_memory(
             input_shm_name="isaac_robot_state",  # read the state of the G1 robot from Isaac Lab
             output_shm_name="dds_robot_cmd",  # output the command to Isaac Lab
-            input_size=3072,
-            output_size=3072  # output the command to Isaac Lab
+            input_size=8192,
+            output_size=8192  # output the command to Isaac Lab
         )
         
         print(f"[{self.node_name}] G1 robot DDS node initialized")
@@ -96,7 +97,7 @@ class H12RobotDDS(DDSObject):
             if imu and len(imu) >= 13:
                 imu_array = np.asarray(imu, dtype=np.float32)
 
-                imu_state.quaternion[:] = imu_array[[4, 5, 6, 3]] #[x,y,z,w]
+                imu_state.quaternion[:] = imu_array[3:7]  # Unitree LowState uses WXYZ.
 
                 imu_state.accelerometer[:] = imu_array[7:10]
 
@@ -135,11 +136,13 @@ class H12RobotDDS(DDSObject):
             
             # extract the command data
             num_cmd_motors = len(msg.motor_cmd)
-            print(f"{num_cmd_motors=}")
+            self._command_sequence += 1
             cmd_data = {
+                "sequence": self._command_sequence,
                 "mode_pr": int(msg.mode_pr),
                 "mode_machine": int(msg.mode_machine),
                 "motor_cmd": {
+                    "mode": [int(msg.motor_cmd[i].mode) for i in range(num_cmd_motors)],
                     "positions": [float(msg.motor_cmd[i].q) for i in range(num_cmd_motors)],
                     "velocities": [float(msg.motor_cmd[i].dq) for i in range(num_cmd_motors)],
                     "torques": [float(msg.motor_cmd[i].tau) for i in range(num_cmd_motors)],
@@ -161,7 +164,6 @@ class H12RobotDDS(DDSObject):
         """
         if self.output_shm:
             data = self.output_shm.read_data()
-            print(f"{data=}")
             return data
         return None
     

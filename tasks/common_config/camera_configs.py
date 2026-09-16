@@ -120,7 +120,8 @@ class CameraPresets:
     @classmethod
     def h12_front_camera(cls) -> CameraCfg:
         """front camera configuration"""
-        return CameraBaseCfg.get_camera_config(prim_path = "/World/envs/env_.*/Robot/camera_link/front_cam")
+        return CameraBaseCfg.get_camera_config(prim_path="/World/envs/env_.*/Robot/camera_link/front_cam",
+                                               data_types=["rgb", "distance_to_image_plane"])
     @classmethod
     def g1_world_camera(cls) -> CameraCfg:
         """front camera configuration"""

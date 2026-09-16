@@ -8,7 +8,7 @@ Handle the state publishing and command receiving of the gripper
 import threading
 from typing import Any, Dict, Optional
 from ..common.dds_base import DDSObject
-from unitree_sdk2py.core.channel import ChannelPublisher, ChannelSubscriber
+from ..common.transport import ChannelPublisher, ChannelSubscriber
 from unitree_sdk2py.idl.unitree_go.msg.dds_ import MotorCmds_, MotorStates_
 from unitree_sdk2py.idl.default import unitree_go_msg_dds__MotorCmd_, unitree_go_msg_dds__MotorState_
 import numpy as np
@@ -43,9 +43,9 @@ class InspireDDS(DDSObject):
         # setup the shared memory
         self.setup_shared_memory(
             input_shm_name="isaac_inspire_state",  # read the state of the gripper from Isaac Lab
-            input_size=1024,
+            input_size=4096,
             output_shm_name="isaac_inspire_cmd",  # output the command to Isaac Lab
-            output_size=1024,  # output the command to Isaac Lab
+            output_size=4096,  # output the command to Isaac Lab
         )
         
         print(f"[{self.node_name}] Inspire Hand DDS node initialized")

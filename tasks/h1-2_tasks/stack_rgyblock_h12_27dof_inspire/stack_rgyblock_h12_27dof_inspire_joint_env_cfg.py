@@ -17,6 +17,8 @@ from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.utils import configclass
 from isaaclab.assets import ArticulationCfg
 from . import mdp
+from src.python.control.unitree_action import UnitreeMotorActionCfg
+from tasks.common_observations.h12_27dof_state import reset_robot_imu_cache
 from isaaclab.envs import ViewerCfg
 # use Isaac Lab native event system
 
@@ -48,16 +50,16 @@ class ObjectTableSceneCfg(TableRedGreenYellowBlockSceneCfg):
 
     
     # 6. add camera configuration 
-    #front_camera = CameraPresets.h12_front_camera()
-    #left_wrist_camera = CameraPresets.left_inspire_wrist_camera()
-    #right_wrist_camera = CameraPresets.right_inspire_wrist_camera()
+    front_camera = CameraPresets.h12_front_camera()
+    left_wrist_camera = CameraPresets.left_inspire_wrist_camera()
+    right_wrist_camera = CameraPresets.right_inspire_wrist_camera()
 
     #correll_cam_0 = CameraPresets.correll_camera_0()
     #correll_cam_1 = CameraPresets.correll_camera_1()
     #correll_cam_2 = CameraPresets.correll_camera_2()
-    #imu = ImuPresets.livox_imu()
+    imu = ImuPresets.livox_imu()
 
-    #lidar = RayCasterPresets.livox_lidar()
+    lidar = RayCasterPresets.livox_lidar()
 
 ##
 # MDP settings
@@ -66,7 +68,7 @@ class ObjectTableSceneCfg(TableRedGreenYellowBlockSceneCfg):
 class ActionsCfg:
     """defines the action configuration related to robot control, using direct joint angle control
     """
-    joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*"], scale=1.0, use_default_offset=True)
+    motor = UnitreeMotorActionCfg(asset_name="robot")
 
 
 
@@ -84,7 +86,7 @@ class ObservationsCfg:
         # 1. robot joint state observation
         robot_joint_state = ObsTerm(func=mdp.get_robot_boy_joint_states)
         # 2. gripper joint state observation 
-        #robot_inspire_state = ObsTerm(func=mdp.get_robot_inspire_joint_states)
+        robot_inspire_state = ObsTerm(func=mdp.get_robot_inspire_joint_states)
 
         # 3. camera image observation
         #camera_image = ObsTerm(func=mdp.get_camera_image)
@@ -119,7 +121,7 @@ class RewardsCfg:
 
 @configclass
 class EventCfg:
-    pass
+    reset_imu = EventTermCfg(func=reset_robot_imu_cache, mode="reset")
     #reset_red_block = EventTermCfg(
     #    func=mdp.reset_root_state_uniform,  # use uniform distribution reset function
     #    mode="reset",   # set event mode to reset
@@ -187,6 +189,11 @@ class StackRgyBlockH1227dofInspireBaseFixEnvCfg(ManagerBasedRLEnvCfg):
         """Post initialization."""
         self.decimation = 2
         self.episode_length_s = 20.0
+        # Body drives stay released until the first valid Unitree command.
+        for name, actuator in self.scene.robot.actuators.items():
+            if name != "hands":
+                actuator.stiffness = 0.0
+                actuator.damping = 0.0
         # simulation settings
         self.sim.dt = 0.005
         self.sim.render_interval = self.decimation

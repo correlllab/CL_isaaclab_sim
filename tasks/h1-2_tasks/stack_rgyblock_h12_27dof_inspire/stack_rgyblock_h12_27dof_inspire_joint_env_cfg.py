@@ -121,6 +121,8 @@ class RewardsCfg:
 
 @configclass
 class EventCfg:
+    # Restore root pose/velocity and joint state after initialization and resets.
+    reset_scene = EventTermCfg(func=base_mdp.reset_scene_to_default, mode="reset")
     reset_imu = EventTermCfg(func=reset_robot_imu_cache, mode="reset")
     #reset_red_block = EventTermCfg(
     #    func=mdp.reset_root_state_uniform,  # use uniform distribution reset function

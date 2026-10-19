@@ -47,5 +47,5 @@ def configure_robot_variant(cfg, name='magpie', fix_base=False):
         sensor.offset.pos = (0., 0., .045)
         sensor.offset.rot = (0., 0., 0., 1.)
         sensor.offset.convention = 'ros'
-    cfg.scene.imu.prim_path = f'{root}/{variant.lidar_link}'
+    cfg.scene.imu.prim_path = f'{root}/{variant.imu_link}'
     cfg.scene.lidar.prim_path = f'{root}/{variant.lidar_link}'

@@ -27,6 +27,7 @@ class H12RobotDDS(DDSObject):
         self.node_name = node_name
         self.crc = CRC()
         self.low_state = unitree_hg_msg_dds__LowState_()
+        self.low_state.mode_machine = 6  # what the real H1-2 reports; the IDL default is 0
         self._initialized = True
         self._command_sequence = 0
         

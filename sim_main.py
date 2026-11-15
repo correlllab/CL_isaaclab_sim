@@ -99,6 +99,10 @@ def main():
             env.magpie_controller = MagpieController(env.scene['robot'], magpie_bridge)
         dds = create_dds_objects(args, env)
         resources.callback(dds.stop_all_communication)
+        # The hardware estop box golem_bringup's estop_node reads (ENTER toggles it).
+        from src.python.sensors.estop_server import start_estop_server
+        estop = start_estop_server('isaac')
+        resources.callback(estop.shutdown)
         controller = RobotController(env, ControlConfig(step_hz=args.step_hz or 1 / env.step_dt))
         resources.callback(controller.cleanup)
         controller.set_action_provider(create_action_provider(env, args))

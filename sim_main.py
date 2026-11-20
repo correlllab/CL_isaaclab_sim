@@ -18,6 +18,9 @@ def main():
     parser.add_argument('--enable_inspire_dds', action='store_true')
     parser.add_argument('--hand_type', choices=['magpie', 'inspire'], default='magpie')
     parser.add_argument('--fix_base', action='store_true', help='Fix the root for bench tests; Magpie normally floats')
+    parser.add_argument('--elastic_band', action='store_true',
+                        help='Hang the floating robot from an elastic band on its torso until '
+                             '/elastic_band/toggle releases it, as the RoboCasa sims do; not with --fix_base')
     parser.add_argument('--step_hz', type=float, default=None,
                         help='Wall-clock control frequency; default matches the environment step time')
     parser.add_argument('--physics_dt', type=float, default=None)
@@ -34,6 +37,8 @@ def main():
     if args.enable_inspire_dds:
         args.hand_type = 'inspire'
     args.enable_inspire_dds = args.hand_type == 'inspire'
+    if args.elastic_band and args.fix_base:
+        parser.error('--elastic_band holds a floating robot; it cannot be combined with --fix_base')
     if args.physics_dt is not None and not 0 < args.physics_dt < float('inf'):
         parser.error('--physics_dt must be finite and positive')
     if args.step_hz is not None and not 0 < args.step_hz < float('inf'):
@@ -97,6 +102,17 @@ def main():
             magpie_bridge = MagpieBridge()
             resources.callback(magpie_bridge.close)
             env.magpie_controller = MagpieController(env.scene['robot'], magpie_bridge)
+        band_service = None
+        if args.elastic_band:
+            # The band holds the torso from the first physics step; UnitreeMotorAction applies it.
+            from src.python.control.elastic_band import ElasticBand
+            from src.python.sensors.elastic_band_service import ElasticBandService
+            env.elastic_band = ElasticBand(env.scene['robot'])
+            band_service = ElasticBandService(sensors, env.elastic_band)
+            resources.callback(band_service.close)
+            print(f'[isaac] elastic band on {env.elastic_band.body} anchored at '
+                  f'{[round(v, 3) for v in env.elastic_band.anchor[0].tolist()]}; '
+                  '/elastic_band/toggle releases it', flush=True)
         dds = create_dds_objects(args, env)
         resources.callback(dds.stop_all_communication)
         # The hardware estop box golem_bringup's estop_node reads (ENTER toggles it).
@@ -123,6 +139,8 @@ def main():
                 sensors.publish(sim_time)
                 if args.hand_type == 'magpie':
                     env.magpie_controller.publish(sim_time)
+                if band_service is not None:
+                    band_service.spin()
                 if env.sim.is_stopped() or (args.max_steps and controller.step_count >= args.max_steps):
                     break
         print(f'[isaac] completed {controller.step_count} steps', flush=True)

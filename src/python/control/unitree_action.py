@@ -62,6 +62,11 @@ class UnitreeMotorAction(ActionTerm):
             actuator.damping.copy_(self._asset.data.joint_damping[:, actuator.joint_indices])
 
     def apply_actions(self):
+        # Runs before every physics step, so the elastic band (sim_main.py --elastic_band)
+        # follows the torso at the physics rate.
+        band = getattr(self._env, 'elastic_band', None)
+        if band is not None:
+            band.apply()
         command = self._raw_actions[:, :BODY_ACTION_DIM].reshape(-1, 6, len(BODY_JOINT_NAMES))
         self._asset.set_joint_position_target(command[:, 0], joint_ids=self._body_ids)
         self._asset.set_joint_velocity_target(command[:, 1], joint_ids=self._body_ids)

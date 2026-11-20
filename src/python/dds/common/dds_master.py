@@ -1,9 +1,10 @@
 # Copyright (c) 2025, Unitree Robotics Co., Ltd. All Rights Reserved.
 # License: Apache License, Version 2.0
 import time
+import os
 import threading
 from typing import Dict, List, Optional
-from unitree_sdk2py.core.channel import ChannelFactoryInitialize
+from .transport import initialize as initialize_transport
 from .dds_base import DDSObject
 
 
@@ -40,7 +41,6 @@ class DDSManager:
         self._default_pub_interval: float = 0.01  # 100Hz default
 
         self.dds_initialized = False
-        self._init_dds()
         print("[DDSManager] DDSManager initialized")
     
     def _parse_object_name(self, name: str) -> tuple[str, str]:
@@ -57,13 +57,16 @@ class DDSManager:
             return True
         
         try:
-            ChannelFactoryInitialize(36)
+            domain = int(os.environ.get("ROS_DOMAIN_ID") or "1")
+            if not 1 <= domain <= 232:
+                raise ValueError("Simulation ROS_DOMAIN_ID must be 1..232; 0 is reserved for the real robot")
+            initialize_transport(domain)
             self.dds_initialized = True
-            print("[DDSManager] DDS system initialized")
+            print(f"[DDSManager] DDS system initialized on domain {domain}")
             return True
         except Exception as e:
             print(f"[DDSManager] DDS system initialization failed: {e}")
-            return False
+            raise
     
     def register_object(self, name: str, obj: DDSObject) -> bool:
         """Register DDS object"""
@@ -139,7 +142,6 @@ class DDSManager:
 
     def _publish_loop(self) -> None:
         """Publish loop thread"""
-        print("PUBLISH LOOP THREAD INIIALIZED")
         print("[DDSManager] publish loop thread started")
         
         while self.publishing_running:
@@ -209,9 +211,22 @@ class DDSManager:
 
 
     def stop_all_communication(self):
-        for name, obj in self.objects.items():
-            obj.stop_communication()    
-            self.publishing_running=False
-            self.subscribing_running=False
+        self.publishing_running = False
+        self.subscribing_running = False
+        for obj in self.objects.values():
+            obj.stop_communication()
+        for worker in (self.publish_thread, self.subscribe_thread):
+            if worker is not None and worker is not threading.current_thread():
+                worker.join(timeout=2.0)
+        for obj in self.objects.values():
+            for name in ('subscriber', 'publisher'):
+                channel = getattr(obj, name, None)
+                if channel is not None:
+                    channel.Close()
+            for name in ('input_shm', 'output_shm'):
+                memory = getattr(obj, name, None)
+                if memory is not None:
+                    memory.cleanup()
+        self.objects.clear()
 # global singleton instance
 dds_manager = DDSManager()

@@ -4,6 +4,8 @@ from typing import Optional, Dict, Any
 import torch
 from dataclasses import dataclass
 from .action_base import ActionProvider
+from .pacing import RealtimePacer
+from .motor_contract import ACTION_DIM
 
 
 @dataclass
@@ -27,7 +29,7 @@ class RobotController:
         self._last_step_time = 0.0
         
         all_joint_names = env.scene["robot"].data.joint_names
-        self._last_action = torch.zeros(len(all_joint_names), device=env.device)
+        self._last_action = torch.zeros((env.num_envs, ACTION_DIM), device=env.device)
         
         
         # pre-calculate the sleep threshold (avoid calculating every time)
@@ -65,6 +67,7 @@ class RobotController:
         self.is_running = True
         self._start_time = time.time()
         self._last_step_time = self._perf_counter()
+        self._pacer = RealtimePacer(self._step_interval, clock=self._perf_counter, sleep=self._time_sleep)
         
         # start the action provider
         if self.action_provider:
@@ -123,13 +126,7 @@ class RobotController:
         
         # 3. minimal frequency control (no rendering overhead, use the pre-calculated threshold)
         sleep_start = perf_counter()
-        current_time = perf_counter()
-        if self._last_step_time > 0:
-            elapsed = current_time - self._last_step_time
-            sleep_needed = self._step_interval - elapsed
-            if sleep_needed > self._sleep_threshold:  # use the pre-calculated threshold
-                self._time_sleep(sleep_needed - self._sleep_adjustment)  # use the pre-calculated adjustment value
-        self._last_step_time = current_time
+        self._pacer.wait()
         sleep_time = perf_counter() - sleep_start
         
         # 4. minimal performance print
